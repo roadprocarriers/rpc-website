@@ -1,0 +1,18 @@
+[build]
+  functions = "netlify/functions"
+
+  [[headers]]
+    for = "/dispatch/*"
+      [headers.values]
+          X-Frame-Options = "DENY"
+              X-Content-Type-Options = "nosniff"
+
+              [[redirects]]
+                from = "/dispatch"
+                  to = "/dispatch/index.html"
+                    status = 200
+
+                    [[redirects]]
+                      from = "/driver-pay"
+                        to = "/driver-pay/index.html"
+                          status = 200
