@@ -87,6 +87,11 @@ select option{background:#1e2a3a}
 .aci-zip{font-weight:700;color:#fff;min-width:52px}
 .aci-city{color:rgba(255,255,255,.7)}
 
+/* PICKUP / DELIVERY SIDE BY SIDE */
+.pu-del-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.pu-col,.del-col{display:flex;flex-direction:column;gap:6px;min-width:0}
+.col-header{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:0 2px 2px}
+
 /* ROUTE SUMMARY BAR */
 .route-summary{background:var(--card2);border-radius:6px;padding:9px 12px;margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .rs-item{font-size:12px}
@@ -241,7 +246,7 @@ select option{background:#1e2a3a}
 
     <div class="stops-section">
 
-      <!-- CURRENT LOCATION -->
+      <!-- CURRENT LOCATION — full width -->
       <div class="stop-block stop-block-cur">
         <div class="stop-block-header">
           <span class="stop-label stop-lbl-cur">📍 Current Location</span>
@@ -253,13 +258,19 @@ select option{background:#1e2a3a}
         </div>
       </div>
 
-      <!-- PICKUP STOPS -->
-      <div id="puStops"></div>
-      <div class="btn-add" onclick="addStop('pu')" style="margin-top:2px">+ Add Pickup Stop</div>
-
-      <!-- DELIVERY STOPS -->
-      <div id="delStops"></div>
-      <div class="btn-add" onclick="addStop('del')" style="margin-top:6px">+ Add Delivery Stop</div>
+      <!-- PICKUP + DELIVERY side by side -->
+      <div class="pu-del-row">
+        <div class="pu-col">
+          <div class="col-header stop-lbl-pu">🟢 Pickup</div>
+          <div id="puStops"></div>
+          <div class="btn-add" onclick="addStop('pu')" style="margin-top:4px">+ Add Pickup Stop</div>
+        </div>
+        <div class="del-col">
+          <div class="col-header stop-lbl-del">🔴 Delivery</div>
+          <div id="delStops"></div>
+          <div class="btn-add" onclick="addStop('del')" style="margin-top:4px">+ Add Delivery Stop</div>
+        </div>
+      </div>
 
     </div>
 
