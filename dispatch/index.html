@@ -80,7 +80,7 @@ select option{background:#1e2a3a}
 .stop-input{width:100%;background:#111827;border:1px solid rgba(0,142,151,.25);border-radius:6px;color:#fff;font-size:13px;padding:9px 12px;outline:none;font-family:inherit}
 .stop-input:focus{border-color:var(--aqua);background:#0f1e2e}
 .stop-input::placeholder{color:var(--dim)}
-.acdd{position:relative;background:#1a2e40;border:1px solid var(--aqua);border-radius:6px;z-index:200;display:none;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5);margin-top:4px}
+.acdd{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#1a2e40;border:1px solid var(--aqua);border-radius:6px;z-index:9999;display:none;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.7)}
 .aci{padding:9px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px}
 .aci:hover{background:rgba(0,142,151,.2);color:var(--aqua)}
 .aci:last-child{border-bottom:none}
@@ -798,7 +798,7 @@ function selLoc_cur(el){
       var enc=JSON.stringify({z:it.z,c:it.c,s:it.s,lat:it.lat,lng:it.lng,label:it.c+(it.s?', '+it.s:'')}).replace(/"/g,"'");
       return '<div class="aci" onclick="selCurLoc(this)" data-d="'+enc+'">'+lbl+'</div>';
     }).join('');
-    dd.style.cssText='display:block;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:9999;background:#1a2e40;border:1px solid #008E97;border-radius:6px;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.7)';
+    dd.style.display='block';
   }
   window.selCurLoc=function(el){
     var data=JSON.parse(el.dataset.d.replace(/'/g,'"'));
@@ -835,7 +835,7 @@ function calcSegmentMiles(from,to,callback){
     fetch(url)
       .then(function(r){return r.json();}).then(function(d){
         var sec=d.routes&&d.routes[0]&&d.routes[0].sections&&d.routes[0].sections[0];
-        if(sec&&sec.summary&&sec.summary.length) callback(Math.round(sec.summary.length*0.621371));
+        if(sec&&sec.summary&&sec.summary.length) callback(Math.round(sec.summary.length*0.000621371));
         else callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));
       }).catch(function(){callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));});
   } else {
@@ -843,7 +843,7 @@ function calcSegmentMiles(from,to,callback){
     fetch('/.netlify/functions/here-route?olat='+from.lat+'&olng='+from.lng+'&dlat='+to.lat+'&dlng='+to.lng)
       .then(function(r){return r.json();}).then(function(d){
         var sec=d.routes&&d.routes[0]&&d.routes[0].sections&&d.routes[0].sections[0];
-        if(sec&&sec.summary&&sec.summary.length) callback(Math.round(sec.summary.length*0.621371));
+        if(sec&&sec.summary&&sec.summary.length) callback(Math.round(sec.summary.length*0.000621371));
         else callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));
       }).catch(function(){callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));});
   }
