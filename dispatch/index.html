@@ -739,7 +739,21 @@ function selStop(stopId,ddId,inputId,dataStr){
   }
   recalcRoute();
 }
-document.addEventListener('click',function(e){if(!e.target.closest('.stop-input-wrap')&&!e.target.closest('.fac'))document.querySelectorAll('.acdd').forEach(function(d){d.style.display='none';});});
+// Close ALL dropdowns when clicking outside any stop input
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.stop-input-wrap')&&!e.target.closest('.fac'))
+    document.querySelectorAll('.acdd').forEach(function(d){d.style.display='none';});
+});
+// Close all OTHER dropdowns when focusing any stop input
+document.addEventListener('focusin',function(e){
+  var wrap=e.target.closest('.stop-input-wrap');
+  if(wrap){
+    var myDD=wrap.querySelector('.acdd');
+    document.querySelectorAll('.acdd').forEach(function(d){
+      if(d!==myDD) d.style.display='none';
+    });
+  }
+});
 
 // Special handler for current location field
 function acInput_curLoc(input){
