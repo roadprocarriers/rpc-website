@@ -722,7 +722,9 @@ function showAC(items,dd,input,stopId){
       +'<span class="aci-city">'+city+'</span>'
       +'</div>';
   }).join('');
-  dd.style.display='block';
+  // Use position:fixed so dropdown floats over page without affecting layout
+  var r=input.getBoundingClientRect();
+  dd.style.cssText='position:fixed!important;top:'+(r.bottom+2)+'px;left:'+r.left+'px;width:'+r.width+'px;right:auto;z-index:9999;background:#1a2e40;border:1px solid #008E97;border-radius:6px;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.7);display:block';
 }
 function selStop(stopId,ddId,inputId,dataStr){
   var data=JSON.parse(dataStr.replace(/'/g,'"'));
@@ -793,7 +795,9 @@ function selLoc_cur(el){
       var enc=JSON.stringify({z:it.z,c:it.c,s:it.s,lat:it.lat,lng:it.lng,label:it.c+(it.s?', '+it.s:'')}).replace(/"/g,"'");
       return '<div class="aci" onclick="selCurLoc(this)" data-d="'+enc+'">'+lbl+'</div>';
     }).join('');
-    dd.style.display='block';
+    var inp=document.getElementById('curLocInput');
+    var r=inp.getBoundingClientRect();
+    dd.style.cssText='position:fixed!important;top:'+(r.bottom+2)+'px;left:'+r.left+'px;width:'+r.width+'px;right:auto;z-index:9999;background:#1a2e40;border:1px solid #008E97;border-radius:6px;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.7);display:block';
   }
   window.selCurLoc=function(el){
     var data=JSON.parse(el.dataset.d.replace(/'/g,'"'));
