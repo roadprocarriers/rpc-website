@@ -418,6 +418,8 @@ select option{background:#1e2a3a}
 </div><!-- /app -->
 
 <script>
+var stopCount=0;
+
 /* ─── STATE ─── */
 var A = {
   drivers:[], selDriver:null, selTrailer:'dryvan',
@@ -622,6 +624,7 @@ function selDriver(id){
 
 /* ─── STOPS BUILDER ─── */
 var stopCount=0;
+
 function addStop(type){
   var id='stop_'+(++stopCount);
   var containerId=type==='pu'?'puStops':'delStops';
