@@ -359,9 +359,15 @@ select option{background:#1e2a3a}
 <div class="tc" id="tab-settings">
   <div class="card">
     <div class="ct">API Keys</div>
+    <div class="key-row">
+      <label>HERE Maps</label>
+      <input type="password" id="kHere" placeholder="HERE API key — same key from your driver pay dashboard" oninput="saveKey('here')"/>
+      <span class="ks ks-no" id="ks-here">Not set</span>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">Get your free HERE key at <a href="https://platform.here.com/sign-up" target="_blank" style="color:var(--aqua)">platform.here.com</a> — same key from your driver pay dashboard works here.</div>
     <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:6px;padding:10px 12px;margin-bottom:8px">
-      <div style="font-size:12px;font-weight:600;color:#4ade80;margin-bottom:4px">✅ All API keys configured server-side</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.6)">HERE Maps (truck routing), EIA Diesel (live prices), OpenWeatherMap (weather + hazard), and Trulos lane rates are all active. Keys are stored securely in Netlify environment variables — never visible in the browser.</div>
+      <div style="font-size:12px;font-weight:600;color:#4ade80;margin-bottom:4px">✅ EIA, OpenWeatherMap configured server-side</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.6)">Live diesel prices and weather hazard detection run automatically. HERE Maps key goes above for address autocomplete and truck routing.</div>
     </div>
     <div style="background:rgba(0,142,151,.08);border:1px solid rgba(0,142,151,.2);border-radius:6px;padding:8px 12px;margin-top:10px;display:flex;align-items:center;gap:8px">
       <div class="dot"></div>
@@ -633,24 +639,43 @@ function recalcStopLabels(){
 }
 
 /* ─── AUTOCOMPLETE ─── */
+function hereAC(q,cb){
+  var isZip=/^\d{3,5}$/.test(q);
+  if(A.hereKey&&A.hereKey.length>8){
+    // Direct HERE call — same as driver pay dashboard
+    var url=isZip
+      ?'https://geocode.search.hereapi.com/v1/geocode?q='+encodeURIComponent(q)+'&in=countryCode:USA&lang=en-US&limit=6&apiKey='+A.hereKey
+      :'https://autocomplete.search.hereapi.com/v1/autocomplete?q='+encodeURIComponent(q)+'&in=countryCode:USA&resultTypes=city,postalCode&limit=8&lang=en-US&apiKey='+A.hereKey;
+    fetch(url).then(function(r){return r.json();}).then(function(d){
+      var items=(d.items||[]).slice(0,8).map(function(i){
+        var a=i.address||{},p=i.position||{};
+        return{z:a.postalCode||'',c:a.city||a.county||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};
+      }).filter(function(i){return i.lat&&i.lng;});
+      cb(items);
+    }).catch(function(){cb([]);});
+  } else {
+    // Fall back to Netlify proxy function
+    var url2=isZip
+      ?'/.netlify/functions/here-ac?q='+encodeURIComponent(q+' USA')
+      :'/.netlify/functions/here-ac?q='+encodeURIComponent(q);
+    fetch(url2).then(function(r){return r.json();}).then(function(d){
+      var items=(d.items||[]).slice(0,8).map(function(i){
+        var a=i.address||{},p=i.position||{};
+        return{z:a.postalCode||'',c:a.city||a.county||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};
+      }).filter(function(i){return i.lat&&i.lng;});
+      cb(items);
+    }).catch(function(){cb([]);});
+  }
+}
 function acInput(input,acId,stopId){
   var q=input.value.trim(),dd=document.getElementById(acId);
   if(A.acTimers[stopId])clearTimeout(A.acTimers[stopId]);
   if(q.length<2){dd.style.display='none';return;}
   A.acTimers[stopId]=setTimeout(function(){
-    var isZip=/^\d{3,5}$/.test(q);
-    var url=isZip
-      ?'/.netlify/functions/here-ac?q='+encodeURIComponent(q+'%20USA')
-      :'/.netlify/functions/here-ac?q='+encodeURIComponent(q);
-    fetch(url)
-      .then(function(r){return r.json();}).then(function(d){
-        var items=(d.items||[]).slice(0,8).map(function(i){
-          var a=i.address||{},p=i.position||{};
-          return{z:a.postalCode||'',c:a.city||a.county||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};
-        }).filter(function(i){return i.lat&&i.lng;});
-        if(items.length) showAC(items,dd,input,stopId);
-        else fbAC(q,dd,input,stopId);
-      }).catch(function(){fbAC(q,dd,input,stopId);});
+    hereAC(q,function(items){
+      if(items.length) showAC(items,dd,input,stopId);
+      else fbAC(q,dd,input,stopId);
+    });
   },300);
 }
 function fbAC(q,dd,input,stopId){
@@ -705,25 +730,13 @@ function selLoc_cur(el){
     if(A.acTimers['curLoc'])clearTimeout(A.acTimers['curLoc']);
     if(q.length<2){dd.style.display='none';return;}
     A.acTimers['curLoc']=setTimeout(function(){
-      var isZip=/^\d{3,5}$/.test(q);
-      var url=isZip
-        ?'/.netlify/functions/here-ac?q='+encodeURIComponent(q+'%20USA')
-        :'/.netlify/functions/here-ac?q='+encodeURIComponent(q);
-      fetch(url)
-        .then(function(r){return r.json();}).then(function(d){
-          var items=(d.items||[]).slice(0,8).map(function(i){
-            var a=i.address||{},p=i.position||{};
-            return{z:a.postalCode||'',c:a.city||a.county||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};
-          }).filter(function(i){return i.lat&&i.lng;});
-          if(items.length) showCurAC(items,dd);
-          else{
-            var ql=q.toLowerCase();
-            showCurAC(CITIES.filter(function(c){return c.z.startsWith(ql)||c.c.toLowerCase().includes(ql)||(c.c+', '+c.s).toLowerCase().includes(ql);}).slice(0,7),dd);
-          }
-        }).catch(function(){
+      hereAC(q,function(items){
+        if(items.length) showCurAC(items,dd);
+        else{
           var ql=q.toLowerCase();
           showCurAC(CITIES.filter(function(c){return c.z.startsWith(ql)||c.c.toLowerCase().includes(ql)||(c.c+', '+c.s).toLowerCase().includes(ql);}).slice(0,7),dd);
-        });
+        }
+      });
     },300);
   };
   function showCurAC(items,dd){
@@ -765,13 +778,23 @@ function haversine(lat1,lng1,lat2,lng2){
 
 function calcSegmentMiles(from,to,callback){
   if(A.hereKey&&A.hereKey.length>8){
+    // Direct HERE routing — same as driver pay dashboard
+    var url='https://router.hereapi.com/v8/routes?transportMode=truck&origin='+from.lat+','+from.lng+'&destination='+to.lat+','+to.lng+'&return=summary&apiKey='+A.hereKey;
+    fetch(url)
+      .then(function(r){return r.json();}).then(function(d){
+        var sec=d.routes&&d.routes[0]&&d.routes[0].sections&&d.routes[0].sections[0];
+        if(sec&&sec.summary&&sec.summary.length) callback(Math.round(sec.summary.length*0.621371));
+        else callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));
+      }).catch(function(){callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));});
+  } else {
+    // Fall back to Netlify proxy
     fetch('/.netlify/functions/here-route?olat='+from.lat+'&olng='+from.lng+'&dlat='+to.lat+'&dlng='+to.lng)
       .then(function(r){return r.json();}).then(function(d){
         var sec=d.routes&&d.routes[0]&&d.routes[0].sections&&d.routes[0].sections[0];
         if(sec&&sec.summary&&sec.summary.length) callback(Math.round(sec.summary.length*0.621371));
         else callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));
       }).catch(function(){callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));});
-  } else callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));
+  }
 }
 
 function recalcRoute(){
