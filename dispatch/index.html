@@ -638,13 +638,20 @@ function acInput(input,acId,stopId){
   if(A.acTimers[stopId])clearTimeout(A.acTimers[stopId]);
   if(q.length<2){dd.style.display='none';return;}
   A.acTimers[stopId]=setTimeout(function(){
-    if(A.hereKey&&A.hereKey.length>8){
-      fetch('/.netlify/functions/here-ac?q='+encodeURIComponent(q))
-        .then(function(r){return r.json();}).then(function(d){
-          showAC((d.items||[]).slice(0,7).map(function(i){var a=i.address||{},p=i.position||{};return{z:a.postalCode||'',c:a.city||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};}),dd,input,stopId);
-        }).catch(function(){fbAC(q,dd,input,stopId);});
-    } else fbAC(q,dd,input,stopId);
-  },280);
+    var isZip=/^\d{3,5}$/.test(q);
+    var url=isZip
+      ?'/.netlify/functions/here-ac?q='+encodeURIComponent(q+'%20USA')
+      :'/.netlify/functions/here-ac?q='+encodeURIComponent(q);
+    fetch(url)
+      .then(function(r){return r.json();}).then(function(d){
+        var items=(d.items||[]).slice(0,8).map(function(i){
+          var a=i.address||{},p=i.position||{};
+          return{z:a.postalCode||'',c:a.city||a.county||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};
+        }).filter(function(i){return i.lat&&i.lng;});
+        if(items.length) showAC(items,dd,input,stopId);
+        else fbAC(q,dd,input,stopId);
+      }).catch(function(){fbAC(q,dd,input,stopId);});
+  },300);
 }
 function fbAC(q,dd,input,stopId){
   var ql=q.toLowerCase();
@@ -698,16 +705,26 @@ function selLoc_cur(el){
     if(A.acTimers['curLoc'])clearTimeout(A.acTimers['curLoc']);
     if(q.length<2){dd.style.display='none';return;}
     A.acTimers['curLoc']=setTimeout(function(){
-      var ql=q.toLowerCase();
-      var items=CITIES.filter(function(c){return c.z.startsWith(ql)||c.c.toLowerCase().includes(ql)||(c.c+', '+c.s).toLowerCase().includes(ql);}).slice(0,7);
-      if(A.hereKey&&A.hereKey.length>8){
-        fetch('/.netlify/functions/here-ac?q='+encodeURIComponent(q))
-          .then(function(r){return r.json();}).then(function(d){
-            items=(d.items||[]).slice(0,7).map(function(i){var a=i.address||{},p=i.position||{};return{z:a.postalCode||'',c:a.city||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};});
-            showCurAC(items,dd);
-          }).catch(function(){showCurAC(items,dd);});
-      } else showCurAC(items,dd);
-    },280);
+      var isZip=/^\d{3,5}$/.test(q);
+      var url=isZip
+        ?'/.netlify/functions/here-ac?q='+encodeURIComponent(q+'%20USA')
+        :'/.netlify/functions/here-ac?q='+encodeURIComponent(q);
+      fetch(url)
+        .then(function(r){return r.json();}).then(function(d){
+          var items=(d.items||[]).slice(0,8).map(function(i){
+            var a=i.address||{},p=i.position||{};
+            return{z:a.postalCode||'',c:a.city||a.county||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};
+          }).filter(function(i){return i.lat&&i.lng;});
+          if(items.length) showCurAC(items,dd);
+          else{
+            var ql=q.toLowerCase();
+            showCurAC(CITIES.filter(function(c){return c.z.startsWith(ql)||c.c.toLowerCase().includes(ql)||(c.c+', '+c.s).toLowerCase().includes(ql);}).slice(0,7),dd);
+          }
+        }).catch(function(){
+          var ql=q.toLowerCase();
+          showCurAC(CITIES.filter(function(c){return c.z.startsWith(ql)||c.c.toLowerCase().includes(ql)||(c.c+', '+c.s).toLowerCase().includes(ql);}).slice(0,7),dd);
+        });
+    },300);
   };
   function showCurAC(items,dd){
     if(!items.length){dd.style.display='none';return;}
