@@ -61,22 +61,31 @@ select option{background:#1e2a3a}
 .tbtn.sel{border-color:var(--orange);color:#fff;background:rgba(245,130,32,.1)}
 
 /* ZIP STOPS BUILDER */
-.stops-section{margin-bottom:10px}
-.stop-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;position:relative}
-.stop-label{min-width:72px;padding-top:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.stops-section{margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
+.stop-block{background:#1a2233;border-radius:8px;padding:10px 12px;border-left:3px solid rgba(0,142,151,.3);position:relative}
+.stop-block-cur{border-left-color:#60a5fa}
+.stop-block-pu{border-left-color:#4ade80}
+.stop-block-del{border-left-color:#f87171}
+.stop-block-stop{border-left-color:var(--orange)}
+.stop-block-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.stop-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
 .stop-lbl-cur{color:#60a5fa}
 .stop-lbl-pu{color:#4ade80}
 .stop-lbl-del{color:#f87171}
 .stop-lbl-stop{color:var(--orange)}
-.stop-input-wrap{flex:1;position:relative}
-.stop-input{width:100%;background:#1e2a3a;border:1px solid rgba(0,142,151,.25);border-radius:6px;color:#fff;font-size:13px;padding:8px 10px;outline:none;font-family:inherit}
-.stop-input:focus{border-color:var(--aqua)}
-.stop-input::placeholder{color:var(--dim)}
-.stop-remove{background:transparent;border:none;color:rgba(239,68,68,.5);cursor:pointer;padding:8px 6px;font-size:14px;flex-shrink:0;line-height:1}
+.stop-remove{background:transparent;border:none;color:rgba(239,68,68,.5);cursor:pointer;padding:2px 4px;font-size:14px;line-height:1}
 .stop-remove:hover{color:#f87171}
-.acdd{position:absolute;top:100%;left:0;right:0;background:#1e2a3a;border:1px solid var(--aqua);border-radius:0 0 6px 6px;z-index:99;display:none;max-height:160px;overflow-y:auto}
-.aci{padding:7px 9px;font-size:11px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
+.stop-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;position:relative}
+.stop-input-wrap{flex:1;position:relative}
+.stop-input{width:100%;background:#111827;border:1px solid rgba(0,142,151,.25);border-radius:6px;color:#fff;font-size:13px;padding:9px 12px;outline:none;font-family:inherit}
+.stop-input:focus{border-color:var(--aqua);background:#0f1e2e}
+.stop-input::placeholder{color:var(--dim)}
+.acdd{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#1a2e40;border:1px solid var(--aqua);border-radius:6px;z-index:200;display:none;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.aci{padding:9px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px}
 .aci:hover{background:rgba(0,142,151,.2);color:var(--aqua)}
+.aci:last-child{border-bottom:none}
+.aci-zip{font-weight:700;color:#fff;min-width:52px}
+.aci-city{color:rgba(255,255,255,.7)}
 
 /* ROUTE SUMMARY BAR */
 .route-summary{background:var(--card2);border-radius:6px;padding:9px 12px;margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -230,10 +239,14 @@ select option{background:#1e2a3a}
   <div class="card">
     <div class="ct">Lane &amp; Stops</div>
 
-    <!-- CURRENT LOCATION -->
     <div class="stops-section">
-      <div class="stop-row">
-        <div class="stop-label stop-lbl-cur">Current<br>Location</div>
+
+      <!-- CURRENT LOCATION -->
+      <div class="stop-block stop-block-cur">
+        <div class="stop-block-header">
+          <span class="stop-label stop-lbl-cur">📍 Current Location</span>
+          <span style="font-size:10px;color:var(--muted)">Where is the truck right now?</span>
+        </div>
         <div class="stop-input-wrap">
           <input class="stop-input" id="curLocInput" type="text" placeholder="ZIP or City, State — where truck is now" oninput="acInput(this,'curLocAC','curLoc')" autocomplete="off"/>
           <div class="acdd" id="curLocAC"></div>
@@ -242,17 +255,12 @@ select option{background:#1e2a3a}
 
       <!-- PICKUP STOPS -->
       <div id="puStops"></div>
-      <div class="stop-row" style="margin-bottom:8px">
-        <div class="stop-label"></div>
-        <div style="flex:1"><div class="btn-add" onclick="addStop('pu')">+ Add Pickup</div></div>
-      </div>
+      <div class="btn-add" onclick="addStop('pu')" style="margin-top:2px">+ Add Pickup Stop</div>
 
       <!-- DELIVERY STOPS -->
       <div id="delStops"></div>
-      <div class="stop-row" style="margin-bottom:4px">
-        <div class="stop-label"></div>
-        <div style="flex:1"><div class="btn-add" onclick="addStop('del')">+ Add Delivery</div></div>
-      </div>
+      <div class="btn-add" onclick="addStop('del')" style="margin-top:6px">+ Add Delivery Stop</div>
+
     </div>
 
     <!-- ROUTE SUMMARY -->
@@ -605,36 +613,45 @@ var stopCount=0;
 function addStop(type){
   var id='stop_'+(++stopCount);
   var containerId=type==='pu'?'puStops':'delStops';
+  var blockClass=type==='pu'?'stop-block-pu':'stop-block-del';
   var labelClass=type==='pu'?'stop-lbl-pu':'stop-lbl-del';
-  var puList=document.getElementById('puStops').querySelectorAll('.stop-row').length;
-  var delList=document.getElementById('delStops').querySelectorAll('.stop-row').length;
+  var icon=type==='pu'?'🟢':'🔴';
+  var puList=document.getElementById('puStops').querySelectorAll('.stop-block').length;
+  var delList=document.getElementById('delStops').querySelectorAll('.stop-block').length;
   var labelText=type==='pu'
-    ?(puList===0?'Pickup':'Stop '+(puList+1))
-    :(delList===0?'Delivery':'Stop '+(delList+1));
+    ?(puList===0?'Pickup':'Pickup Stop '+(puList+1))
+    :(delList===0?'Delivery':'Delivery Stop '+(delList+1));
 
-  var row=document.createElement('div');
-  row.className='stop-row'; row.dataset.stopId=id; row.dataset.stopType=type;
-  row.innerHTML='<div class="stop-label '+labelClass+'">'+labelText+'</div>'
-    +'<div class="stop-input-wrap"><input class="stop-input" id="inp_'+id+'" type="text" placeholder="ZIP or City, State" oninput="acInput(this,\'ac_'+id+'\',\''+id+'\')" autocomplete="off"/>'
-    +'<div class="acdd" id="ac_'+id+'"></div></div>'
-    +'<button class="stop-remove" onclick="removeStop(this)" title="Remove stop">✕</button>';
-  document.getElementById(containerId).appendChild(row);
+  var block=document.createElement('div');
+  block.className='stop-block '+blockClass;
+  block.dataset.stopId=id; block.dataset.stopType=type;
+  block.innerHTML='<div class="stop-block-header">'+
+    '<span class="stop-label '+labelClass+'">'+icon+' '+labelText+'</span>'+
+    '<button class="stop-remove" onclick="removeStop(this)" title="Remove stop">✕</button>'+
+    '</div>'+
+    '<div class="stop-input-wrap">'+
+    '<input class="stop-input" id="inp_'+id+'" type="text" placeholder="ZIP or City, State" oninput="acInput(this,\'ac_'+id+'\',\''+id+'\')" autocomplete="off"/>'+
+    '<div class="acdd" id="ac_'+id+'"></div>'+
+    '</div>';
+  document.getElementById(containerId).appendChild(block);
   recalcStopLabels();
 }
 
 function removeStop(btn){
-  var row=btn.closest('.stop-row');
-  row.remove();
+  var block=btn.closest('.stop-block');
+  block.remove();
   recalcStopLabels();
   recalcRoute();
 }
 
 function recalcStopLabels(){
-  document.getElementById('puStops').querySelectorAll('.stop-row').forEach(function(row,i){
-    row.querySelector('.stop-label').textContent=i===0?'Pickup':'Stop '+(i+1);
+  document.getElementById('puStops').querySelectorAll('.stop-block').forEach(function(block,i){
+    var lbl=block.querySelector('.stop-label');
+    if(lbl) lbl.textContent=(i===0?'🟢 Pickup':'🟢 Pickup Stop '+(i+1));
   });
-  document.getElementById('delStops').querySelectorAll('.stop-row').forEach(function(row,i){
-    row.querySelector('.stop-label').textContent=i===0?'Delivery':'Stop '+(i+1);
+  document.getElementById('delStops').querySelectorAll('.stop-block').forEach(function(block,i){
+    var lbl=block.querySelector('.stop-label');
+    if(lbl) lbl.textContent=(i===0?'🔴 Delivery':'🔴 Delivery Stop '+(i+1));
   });
 }
 
@@ -685,9 +702,13 @@ function fbAC(q,dd,input,stopId){
 function showAC(items,dd,input,stopId){
   if(!items.length){dd.style.display='none';return;}
   dd.innerHTML=items.map(function(it){
-    var lbl=(it.z?it.z+' — ':'')+it.c+(it.s?', '+it.s:'');
+    var zip=it.z||'';
+    var city=it.c+(it.s?', '+it.s:'');
     var enc=JSON.stringify({z:it.z,c:it.c,s:it.s,lat:it.lat,lng:it.lng,label:it.c+(it.s?', '+it.s:'')}).replace(/"/g,"'");
-    return '<div class="aci" onclick="selStop(\''+stopId+'\',\''+dd.id+'\',\''+input.id+'\',this.dataset.d)" data-d="'+enc+'">'+lbl+'</div>';
+    return '<div class="aci" onclick="selStop(\''+stopId+'\',\''+dd.id+'\',\''+input.id+'\',this.dataset.d)" data-d="'+enc+'">'
+      +(zip?'<span class="aci-zip">'+zip+'</span>':'')
+      +'<span class="aci-city">'+city+'</span>'
+      +'</div>';
   }).join('');
   dd.style.display='block';
 }
@@ -760,7 +781,7 @@ function selLoc_cur(el){
 /* ─── ROUTE CALCULATION ─── */
 function getStopCoords(type){
   var containerId=type==='pu'?'puStops':'delStops';
-  var rows=document.getElementById(containerId).querySelectorAll('.stop-row');
+  var rows=document.getElementById(containerId).querySelectorAll('.stop-block');
   var result=[];
   rows.forEach(function(row){
     if(row.dataset.lat&&row.dataset.lng){
