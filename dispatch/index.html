@@ -62,7 +62,7 @@ select option{background:#1e2a3a}
 
 /* ZIP STOPS BUILDER */
 .stops-section{margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
-.stop-block{background:#1a2233;border-radius:8px;padding:10px 12px;border-left:3px solid rgba(0,142,151,.3);position:relative}
+.stop-block{background:#1a2233;border-radius:8px;padding:10px 12px;border-left:3px solid rgba(0,142,151,.3);position:relative;overflow:visible}
 .stop-block-cur{border-left-color:#60a5fa}
 .stop-block-pu{border-left-color:#4ade80}
 .stop-block-del{border-left-color:#f87171}
@@ -80,7 +80,7 @@ select option{background:#1e2a3a}
 .stop-input{width:100%;background:#111827;border:1px solid rgba(0,142,151,.25);border-radius:6px;color:#fff;font-size:13px;padding:9px 12px;outline:none;font-family:inherit}
 .stop-input:focus{border-color:var(--aqua);background:#0f1e2e}
 .stop-input::placeholder{color:var(--dim)}
-.acdd{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#1a2e40;border:1px solid var(--aqua);border-radius:6px;z-index:200;display:none;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.acdd{position:relative;background:#1a2e40;border:1px solid var(--aqua);border-radius:6px;z-index:200;display:none;max-height:180px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5);margin-top:4px}
 .aci{padding:9px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px}
 .aci:hover{background:rgba(0,142,151,.2);color:var(--aqua)}
 .aci:last-child{border-bottom:none}
@@ -90,6 +90,7 @@ select option{background:#1e2a3a}
 /* PICKUP / DELIVERY SIDE BY SIDE */
 .pu-del-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
 .pu-col,.del-col{display:flex;flex-direction:column;gap:6px;min-width:0}
+.stop-block{contain:layout}
 .col-header{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:0 2px 2px}
 
 /* ROUTE SUMMARY BAR */
@@ -254,8 +255,8 @@ select option{background:#1e2a3a}
         </div>
         <div class="stop-input-wrap">
           <input class="stop-input" id="curLocInput" type="text" placeholder="ZIP or City, State — where truck is now" oninput="acInput(this,'curLocAC','curLoc')" autocomplete="off"/>
-          <div class="acdd" id="curLocAC"></div>
         </div>
+        <div class="acdd" id="curLocAC"></div>
       </div>
 
       <!-- PICKUP + DELIVERY side by side -->
@@ -642,8 +643,8 @@ function addStop(type){
     '</div>'+
     '<div class="stop-input-wrap">'+
     '<input class="stop-input" id="inp_'+id+'" type="text" placeholder="ZIP or City, State" oninput="acInput(this,\'ac_'+id+'\',\''+id+'\')" autocomplete="off"/>'+
-    '<div class="acdd" id="ac_'+id+'"></div>'+
-    '</div>';
+    '</div>'+
+    '<div class="acdd" id="ac_'+id+'"></div>';
   document.getElementById(containerId).appendChild(block);
   recalcStopLabels();
 }
