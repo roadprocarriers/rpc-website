@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Dashboard | Road Pro Carriers LLC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f4f8; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ---- HEADER ---- */
+    .dash-header {
+      background: #0F2D72;
+      padding: 0 28px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 16px;
+    }
+    .dash-header .logo-link img { height: 40px; width: auto; display: block; }
+    .dash-header .welcome {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      flex: 1;
+    }
+    .dash-header .welcome span { color: #2BC4A4; }
+    .btn-signout {
+      background: #2BC4A4;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 20px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-signout:hover { background: #24a88c; }
+
+    /* ---- TABS ---- */
+    .tab-bar {
+      background: #fff;
+      border-bottom: 2px solid #e4eaf3;
+      display: flex;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(15,45,114,0.06);
+    }
+    .tab-btn {
+      padding: 16px 22px;
+      border: none;
+      background: none;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      color: #7a8aaa;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn:hover { color: #0F2D72; }
+    .tab-btn.active { color: #0F2D72; border-bottom-color: #2BC4A4; }
+
+    /* ---- MAIN CONTENT ---- */
+    .dash-main { flex: 1; padding: 32px 28px; max-width: 900px; margin: 0 auto; width: 100%; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ---- SECTION HEADING ---- */
+    .section-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 20px; color: #0F2D72; margin-bottom: 20px; }
+
+    /* ---- EMPTY STATE ---- */
+    .empty-state { text-align: center; padding: 56px 24px; color: #9aabca; }
+    .empty-state svg { margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ---- LOADING ---- */
+    .loading { text-align: center; padding: 40px; color: #9aabca; font-size: 14px; }
+
+    /* ---- PAY STATEMENT CARDS ---- */
+    .statement-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(15,45,114,0.08);
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .statement-meta { flex: 1; min-width: 200px; }
+    .statement-meta .period { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 15px; color: #0F2D72; margin-bottom: 6px; }
+    .statement-meta .stat-row { display: flex; gap: 24px; flex-wrap: wrap; }
+    .stat-item { font-size: 13px; color: #666; }
+    .stat-item strong { color: #333; font-weight: 600; display: block; font-size: 14px; }
+    .btn-pdf {
+      background: #0F2D72;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-pdf:hover { background: #0a2055; }
+
+    /* ---- MESSAGES ---- */
+    .msg-thread {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(15,45,114,0.08);
+      padding: 20px;
+      min-height: 300px;
+      max-height: 460px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .bubble-wrap { display: flex; }
+    .bubble-wrap.driver { justify-content: flex-end; }
+    .bubble-wrap.hr { justify-content: flex-start; }
+    .bubble {
+      max-width: 68%;
+      padding: 10px 15px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .bubble-wrap.hr .bubble { background: #0F2D72; color: #fff; border-bottom-left-radius: 4px; }
+    .bubble-wrap.driver .bubble { background: #2BC4A4; color: #fff; border-bottom-right-radius: 4px; }
+    .bubble-time { font-size: 11px; opacity: 0.65; margin-top: 4px; }
+    .bubble-wrap.hr .bubble-time { text-align: left; }
+    .bubble-wrap.driver .bubble-time { text-align: right; }
+    .msg-compose {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(15,45,114,0.08);
+      padding: 16px 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .msg-compose textarea {
+      flex: 1;
+      border: 1.5px solid #dde3ed;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      resize: none;
+      height: 60px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .msg-compose textarea:focus { border-color: #2BC4A4; }
+    .btn-send {
+      background: #2BC4A4;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 22px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-send:hover { background: #24a88c; }
+    .btn-send:disabled { background: #9eddd2; cursor: not-allowed; }
+
+    /* ---- DOCUMENTS ---- */
+    .doc-row {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(15,45,114,0.07);
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .doc-info { flex: 1; min-width: 180px; }
+    .doc-info .doc-type { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 14px; color: #0F2D72; }
+    .doc-info .doc-meta { font-size: 12px; color: #888; margin-top: 2px; }
+    .btn-view {
+      background: transparent;
+      border: 1.5px solid #0F2D72;
+      color: #0F2D72;
+      border-radius: 7px;
+      padding: 7px 18px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .btn-view:hover { background: #0F2D72; color: #fff; }
+    .upload-box {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(15,45,114,0.08);
+      padding: 24px;
+      margin-top: 24px;
+    }
+    .upload-box h3 { font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 700; color: #0F2D72; margin-bottom: 16px; }
+    .upload-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .upload-row select {
+      padding: 10px 14px;
+      border: 1.5px solid #dde3ed;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: #333;
+      background: #fafbfd;
+      outline: none;
+      cursor: pointer;
+    }
+    .upload-row select:focus { border-color: #2BC4A4; }
+    .btn-upload-file {
+      background: #2BC4A4;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-upload-file:hover { background: #24a88c; }
+    .upload-status { font-size: 13px; margin-top: 10px; }
+    .upload-status.success { color: #1a8a5e; }
+    .upload-status.error { color: #b94000; }
+
+    /* ---- PROFILE ---- */
+    .profile-card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 16px rgba(15,45,114,0.08);
+      padding: 36px 40px;
+      max-width: 520px;
+    }
+    .profile-field { margin-bottom: 20px; }
+    .profile-field label { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; color: #9aabca; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 4px; }
+    .profile-field .value { font-size: 17px; font-weight: 500; color: #1a1a2e; }
+    .profile-note { font-size: 13px; color: #888; margin-top: 28px; padding-top: 20px; border-top: 1px solid #eef0f5; }
+    .profile-note a { color: #0F2D72; font-weight: 500; }
+
+    /* ---- FOOTER ---- */
+    .dash-footer { background: #0F2D72; color: rgba(255,255,255,0.45); text-align: center; font-size: 12px; padding: 14px 24px; flex-shrink: 0; }
+
+    @media (max-width: 600px) {
+      .dash-header { padding: 0 16px; }
+      .dash-header .welcome { font-size: 13px; }
+      .dash-main { padding: 20px 16px; }
+      .tab-btn { padding: 14px 14px; font-size: 13px; }
+      .statement-card { flex-direction: column; align-items: flex-start; }
+      .profile-card { padding: 24px 20px; }
+    }
+
+    /* ---- PDF PRINT STYLES ---- */
+    @media print {
+      body * { visibility: hidden; }
+      #pdfTarget, #pdfTarget * { visibility: visible; }
+      #pdfTarget { position: fixed; top: 0; left: 0; width: 100%; background: #fff; padding: 40px; font-family: 'Inter', sans-serif; }
+    }
+    #pdfTarget { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Hidden PDF render target -->
+  <div id="pdfTarget"></div>
+
+  <!-- Header -->
+  <header class="dash-header">
+    <a href="driver-login.html" class="logo-link">
+      <img src="images/logo.png" alt="Road Pro Carriers LLC">
+    </a>
+    <div class="welcome" id="welcomeMsg">Welcome back!</div>
+    <button class="btn-signout" id="signOutBtn">Sign Out</button>
+  </header>
+
+  <!-- Tab Bar -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="pay">Pay Statements</button>
+    <button class="tab-btn" data-tab="messages">Messages</button>
+    <button class="tab-btn" data-tab="documents">Documents</button>
+    <button class="tab-btn" data-tab="profile">Profile</button>
+  </nav>
+
+  <!-- Main -->
+  <main class="dash-main">
+
+    <!-- PAY STATEMENTS -->
+    <section class="tab-panel active" id="tab-pay">
+      <h2 class="section-title">Pay Statements</h2>
+      <div id="statementsContainer"><div class="loading">Loading statements…</div></div>
+    </section>
+
+    <!-- MESSAGES -->
+    <section class="tab-panel" id="tab-messages">
+      <h2 class="section-title">Messages</h2>
+      <div class="msg-thread" id="msgThread"><div class="loading">Loading messages…</div></div>
+      <div class="msg-compose">
+        <textarea id="msgInput" placeholder="Type a message to HR…"></textarea>
+        <button class="btn-send" id="sendBtn">Send</button>
+      </div>
+    </section>
+
+    <!-- DOCUMENTS -->
+    <section class="tab-panel" id="tab-documents">
+      <h2 class="section-title">My Documents</h2>
+      <div id="docsContainer"><div class="loading">Loading documents…</div></div>
+      <div class="upload-box">
+        <h3>Upload a Document</h3>
+        <div class="upload-row">
+          <select id="docType">
+            <option value="CDL">CDL</option>
+            <option value="Medical Card">Medical Card</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="file" id="fileInput" style="display:none">
+          <button class="btn-upload-file" id="chooseFileBtn">Choose File &amp; Upload</button>
+        </div>
+        <div class="upload-status" id="uploadStatus"></div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="tab-panel" id="tab-profile">
+      <h2 class="section-title">My Profile</h2>
+      <div class="profile-card" id="profileCard"><div class="loading">Loading profile…</div></div>
+    </section>
+
+  </main>
+
+  <footer class="dash-footer">&copy; 2026 Road Pro Carriers LLC &mdash; The Road Runs On Pros.<sup style="font-size:0.55em;">&#8482;</sup></footer>
+
+  <script>
+  (async () => {
+    // ---- SUPABASE INIT ----
+    const { createClient } = supabase;
+    const sb = createClient(
+      'https://rfeakhvcjuidsgrjfubn.supabase.co',
+      'sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_'
+    );
+
+    // ---- SESSION GUARD ----
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'driver-login.html'; return; }
+    const authUser = session.user;
+
+    // ---- LOAD DRIVER RECORD ----
+    const { data: driver, error: dErr } = await sb
+      .from('drivers')
+      .select('*')
+      .eq('auth_user_id', authUser.id)
+      .single();
+
+    if (dErr || !driver) {
+      document.getElementById('welcomeMsg').textContent = 'Welcome back!';
+    } else {
+      document.getElementById('welcomeMsg').innerHTML =
+        'Welcome back, <span>' + driver.first_name + '!</span>';
+    }
+
+    // ---- SIGN OUT ----
+    document.getElementById('signOutBtn').addEventListener('click', async () => {
+      await sb.auth.signOut();
+      window.location.href = 'driver-login.html';
+    });
+
+    // ---- TABS ----
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    let loaded = { pay: false, messages: false, documents: false, profile: false };
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabPanels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.tab;
+        document.getElementById('tab-' + tab).classList.add('active');
+        if (!loaded[tab]) { loadTab(tab); loaded[tab] = true; }
+      });
+    });
+
+    // Load pay statements on initial render
+    loadTab('pay');
+    loaded.pay = true;
+
+    // ---- LOAD TAB ----
+    function loadTab(tab) {
+      if (tab === 'pay') loadStatements();
+      else if (tab === 'messages') loadMessages();
+      else if (tab === 'documents') loadDocuments();
+      else if (tab === 'profile') loadProfile();
+    }
+
+    // ---- FORMAT HELPERS ----
+    function fmt(val) {
+      if (val === null || val === undefined) return '—';
+      const n = parseFloat(val);
+      return isNaN(n) ? val : '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    function fmtDate(d) {
+      if (!d) return '—';
+      return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    function fmtNum(v) { return v !== null && v !== undefined ? Number(v).toLocaleString() : '—'; }
+    function fmtTs(ts) {
+      if (!ts) return '';
+      return new Date(ts).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    // ==============================
+    // PAY STATEMENTS
+    // ==============================
+    async function loadStatements() {
+      if (!driver) { document.getElementById('statementsContainer').innerHTML = '<div class="empty-state"><p>Driver record not found. Please contact HR.</p></div>'; return; }
+      const { data: stmts, error } = await sb
+        .from('pay_statements')
+        .select('*')
+        .eq('driver_id', driver.id)
+        .order('pay_period_start', { ascending: false });
+
+      const el = document.getElementById('statementsContainer');
+      if (error) { el.innerHTML = '<div class="empty-state"><p>Error loading statements. Please try again.</p></div>'; return; }
+      if (!stmts || stmts.length === 0) {
+        el.innerHTML = '<div class="empty-state"><p>No statements yet.</p></div>'; return;
+      }
+      el.innerHTML = stmts.map(s => {
+        const deductions = s.deductions || {};
+        const totalDed = Object.values(deductions).reduce((a, b) => a + parseFloat(b || 0), 0);
+        return `<div class="statement-card">
+          <div class="statement-meta">
+            <div class="period">Pay Period: ${fmtDate(s.pay_period_start)} – ${fmtDate(s.pay_period_end)}</div>
+            <div class="stat-row">
+              <div class="stat-item"><strong>${fmtNum(s.total_miles || s.loaded_miles)} mi</strong>Total Miles</div>
+              <div class="stat-item"><strong>${fmt(s.gross_pay)}</strong>Gross Pay</div>
+              <div class="stat-item"><strong>(${fmt(totalDed)})</strong>Deductions</div>
+              <div class="stat-item"><strong>${fmt(s.net_pay)}</strong>Net Pay</div>
+            </div>
+          </div>
+          <button class="btn-pdf" onclick='downloadPDF(${JSON.stringify(s)}, ${JSON.stringify(driver)})'>Download PDF</button>
+        </div>`;
+      }).join('');
+    }
+
+    // ---- PDF GENERATION ----
+    window.downloadPDF = function(s, drv) {
+      const deductions = s.deductions || {};
+      const totalDed = Object.values(deductions).reduce((a, b) => a + parseFloat(b || 0), 0);
+      const dedRows = Object.entries(deductions).map(([k,v]) =>
+        `<tr><td>${k}</td><td style="text-align:right">(${fmt(v)})</td></tr>`
+      ).join('');
+
+      const pdfTarget = document.getElementById('pdfTarget');
+      pdfTarget.innerHTML = `
+        <div style="max-width:680px;margin:0 auto;font-family:Arial,sans-serif;color:#222;">
+          <div style="background:#0F2D72;padding:24px 32px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:0.01em;">ROAD PRO CARRIERS LLC</div>
+              <div style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:4px;">1781 North Turner Street, Hobbs, NM 88240</div>
+            </div>
+            <div style="color:#2BC4A4;font-size:15px;font-weight:700;text-align:right;">PAY STATEMENT</div>
+          </div>
+          <div style="background:#f7f9fc;padding:20px 32px;border:1px solid #e4eaf3;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+              <div style="font-size:11px;color:#9aabca;text-transform:uppercase;letter-spacing:0.06em;">Driver</div>
+              <div style="font-size:16px;font-weight:600;color:#0F2D72;">${drv.first_name} ${drv.last_name}</div>
+              <div style="font-size:13px;color:#555;">ID: ${drv.driver_id || '—'}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;color:#9aabca;text-transform:uppercase;letter-spacing:0.06em;">Pay Period</div>
+              <div style="font-size:15px;font-weight:600;color:#0F2D72;">${fmtDate(s.pay_period_start)} – ${fmtDate(s.pay_period_end)}</div>
+              <div style="font-size:13px;color:#555;">Pay Type: ${s.pay_type || drv.pay_type || '—'}</div>
+            </div>
+          </div>
+          <div style="padding:24px 32px;border:1px solid #e4eaf3;border-top:none;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <tr style="border-bottom:2px solid #e4eaf3;">
+                <th style="text-align:left;padding:8px 0;color:#0F2D72;">Description</th>
+                <th style="text-align:right;padding:8px 0;color:#0F2D72;">Amount</th>
+              </tr>
+              <tr><td style="padding:10px 0;">Loaded Miles</td><td style="text-align:right;">${fmtNum(s.loaded_miles)} mi</td></tr>
+              <tr><td style="padding:10px 0;">Empty Miles</td><td style="text-align:right;">${fmtNum(s.empty_miles)} mi</td></tr>
+              <tr><td style="padding:10px 0;">Rate per Mile</td><td style="text-align:right;">${fmt(s.rate)}</td></tr>
+              <tr style="border-top:1px solid #e4eaf3;">
+                <td style="padding:10px 0;font-weight:600;">Gross Pay</td>
+                <td style="text-align:right;font-weight:600;">${fmt(s.gross_pay)}</td>
+              </tr>
+              ${dedRows}
+              <tr style="border-top:2px solid #0F2D72;background:#f7f9fc;">
+                <td style="padding:14px 0;font-weight:700;font-size:16px;color:#0F2D72;">Net Pay</td>
+                <td style="text-align:right;font-weight:700;font-size:18px;color:#2BC4A4;">${fmt(s.net_pay)}</td>
+              </tr>
+            </table>
+          </div>
+          <div style="padding:14px 32px;background:#f7f9fc;border:1px solid #e4eaf3;border-top:none;border-radius:0 0 8px 8px;font-size:11px;color:#9aabca;text-align:center;">
+            Road Pro Carriers LLC &mdash; The Road Runs On Pros.&#8482; &mdash; HR@roadprocarriers.com &mdash; 980-833-6398
+          </div>
+        </div>
+      `;
+      pdfTarget.style.display = 'block';
+      window.print();
+      setTimeout(() => { pdfTarget.style.display = 'none'; pdfTarget.innerHTML = ''; }, 1000);
+    };
+
+    // ==============================
+    // MESSAGES
+    // ==============================
+    async function loadMessages() {
+      if (!driver) { document.getElementById('msgThread').innerHTML = '<div class="empty-state"><p>Driver record not found.</p></div>'; return; }
+      const { data: msgs, error } = await sb
+        .from('messages')
+        .select('*')
+        .eq('driver_id', driver.id)
+        .order('created_at', { ascending: true });
+
+      const thread = document.getElementById('msgThread');
+      if (error) { thread.innerHTML = '<div class="empty-state"><p>Error loading messages.</p></div>'; return; }
+      if (!msgs || msgs.length === 0) {
+        thread.innerHTML = '<div class="empty-state"><p>No messages yet. Send one below!</p></div>'; return;
+      }
+      thread.innerHTML = msgs.map(m => {
+        const side = m.sender === 'driver' ? 'driver' : 'hr';
+        return `<div class="bubble-wrap ${side}">
+          <div>
+            <div class="bubble">${escHtml(m.body)}</div>
+            <div class="bubble-time">${fmtTs(m.created_at)}</div>
+          </div>
+        </div>`;
+      }).join('');
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+      if (!driver) return;
+      const input = document.getElementById('msgInput');
+      const body = input.value.trim();
+      if (!body) return;
+      const btn = document.getElementById('sendBtn');
+      btn.disabled = true;
+      const { error } = await sb.from('messages').insert({
+        driver_id: driver.id,
+        sender: 'driver',
+        body,
+        read: false
+      });
+      btn.disabled = false;
+      if (!error) {
+        input.value = '';
+        await loadMessages();
+      }
+    });
+
+    document.getElementById('msgInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('sendBtn').click(); }
+    });
+
+    // ==============================
+    // DOCUMENTS
+    // ==============================
+    async function loadDocuments() {
+      if (!driver) { document.getElementById('docsContainer').innerHTML = '<div class="empty-state"><p>Driver record not found.</p></div>'; return; }
+      const { data: docs, error } = await sb
+        .from('driver_documents')
+        .select('*')
+        .eq('driver_id', driver.id)
+        .order('uploaded_at', { ascending: false });
+
+      const el = document.getElementById('docsContainer');
+      if (error) { el.innerHTML = '<div class="empty-state"><p>Error loading documents.</p></div>'; return; }
+      if (!docs || docs.length === 0) {
+        el.innerHTML = '<div class="empty-state"><p>No documents uploaded yet.</p></div>'; return;
+      }
+      el.innerHTML = docs.map(d => `<div class="doc-row">
+        <div class="doc-info">
+          <div class="doc-type">${escHtml(d.doc_type)}</div>
+          <div class="doc-meta">${escHtml(d.file_name)} &mdash; Uploaded ${fmtTs(d.uploaded_at)}</div>
+        </div>
+        <button class="btn-view" onclick="viewDoc('${escHtml(d.storage_url)}')">View</button>
+      </div>`).join('');
+    }
+
+    window.viewDoc = function(url) { window.open(url, '_blank'); };
+
+    document.getElementById('chooseFileBtn').addEventListener('click', () => {
+      document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file || !driver) return;
+      const statusEl = document.getElementById('uploadStatus');
+      statusEl.textContent = 'Uploading…';
+      statusEl.className = 'upload-status';
+
+      const docType = document.getElementById('docType').value;
+      const ext = file.name.split('.').pop();
+      const filePath = authUser.id + '/' + docType.replace(/\s+/g,'-') + '-' + Date.now() + '.' + ext;
+
+      const { data: upData, error: upErr } = await sb.storage
+        .from('driver-documents')
+        .upload(filePath, file, { upsert: false });
+
+      if (upErr) {
+        statusEl.textContent = 'Upload failed: ' + upErr.message;
+        statusEl.className = 'upload-status error';
+        return;
+      }
+
+      const { data: urlData } = sb.storage.from('driver-documents').getPublicUrl(filePath);
+
+      await sb.from('driver_documents').insert({
+        driver_id: driver.id,
+        doc_type: docType,
+        file_name: file.name,
+        storage_url: urlData.publicUrl,
+        uploaded_at: new Date().toISOString()
+      });
+
+      statusEl.textContent = 'Uploaded successfully!';
+      statusEl.className = 'upload-status success';
+      e.target.value = '';
+      await loadDocuments();
+      setTimeout(() => { statusEl.textContent = ''; }, 3000);
+    });
+
+    // ==============================
+    // PROFILE
+    // ==============================
+    function loadProfile() {
+      const el = document.getElementById('profileCard');
+      if (!driver) { el.innerHTML = '<div class="empty-state"><p>Driver record not found. Please contact HR.</p></div>'; return; }
+      const payRate = driver.pay_type === 'per_mile'
+        ? (driver.pay_rate ? fmt(driver.pay_rate) + ' / mile' : '—')
+        : (driver.pay_rate ? fmt(driver.pay_rate) + ' / week' : '—');
+      el.innerHTML = `
+        <div class="profile-field"><label>First Name</label><div class="value">${escHtml(driver.first_name || '—')}</div></div>
+        <div class="profile-field"><label>Last Name</label><div class="value">${escHtml(driver.last_name || '—')}</div></div>
+        <div class="profile-field"><label>Driver ID</label><div class="value">${escHtml(driver.driver_id || '—')}</div></div>
+        <div class="profile-field"><label>Pay Type</label><div class="value">${escHtml(driver.pay_type || '—')}</div></div>
+        <div class="profile-field"><label>Pay Rate</label><div class="value">${payRate}</div></div>
+        <p class="profile-note">To update your information contact <a href="mailto:HR@roadprocarriers.com">HR@roadprocarriers.com</a></p>
+      `;
+    }
+
+  })();
+  </script>
+</body>
+</html>
