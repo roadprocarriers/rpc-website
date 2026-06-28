@@ -289,6 +289,36 @@ select option{background:#1e2a3a}
         <div class="tbtn" data-type="poweronly" onclick="selT(this)">🚛 Power Only</div>
         <div class="tbtn" data-type="expedited" onclick="selT(this)">⚡ Expedited</div>
       </div>
+
+      <!-- REEFER TEMP — only shows when Reefer is selected -->
+      <div id="reeferTempRow" style="display:none;margin-top:10px;background:rgba(0,142,151,.08);border:1px solid rgba(0,142,151,.2);border-radius:8px;padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--aqua);margin-bottom:8px">❄️ Load Temperature</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="temp-tier-btn sel" data-tier="fresh" onclick="selReeferTier(this)" style="text-align:center;padding:8px;border-radius:6px;background:rgba(0,142,151,.15);border:1px solid rgba(0,142,151,.4);cursor:pointer">
+            <div style="font-size:16px">🥦</div>
+            <div style="font-size:11px;font-weight:700;color:#4ade80">Fresh/Produce</div>
+            <div style="font-size:10px;color:var(--muted)">34°F – 50°F</div>
+          </div>
+          <div class="temp-tier-btn" data-tier="chilled" onclick="selReeferTier(this)" style="text-align:center;padding:8px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);cursor:pointer">
+            <div style="font-size:16px">🥩</div>
+            <div style="font-size:11px;font-weight:700;color:#60a5fa">Chilled/Meat</div>
+            <div style="font-size:10px;color:var(--muted)">28°F – 33°F</div>
+          </div>
+          <div class="temp-tier-btn" data-tier="frozen" onclick="selReeferTier(this)" style="text-align:center;padding:8px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);cursor:pointer">
+            <div style="font-size:16px">🧊</div>
+            <div style="font-size:11px;font-weight:700;color:#a78bfa">Frozen</div>
+            <div style="font-size:10px;color:var(--muted)">-20°F – 27°F</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="font-size:11px;color:var(--muted);white-space:nowrap">Set Point (°F):</label>
+          <input type="number" id="reeferSetPoint" value="34" min="-20" max="70"
+            style="width:80px;background:#111827;border:1px solid rgba(0,142,151,.3);border-radius:5px;color:#fff;font-size:13px;padding:5px 8px;outline:none"
+            oninput="onReeferTempChange()"/>
+          <span id="reeferTempLabel" style="font-size:11px;color:#4ade80">Fresh/Produce — standard reefer rate</span>
+        </div>
+      </div>
+
     </div>
 
     <div class="g3" style="margin-bottom:10px">
@@ -588,11 +618,62 @@ function sw(t){
 function selT(el){
   document.querySelectorAll('.tbtn').forEach(function(b){b.classList.remove('sel');});
   el.classList.add('sel'); A.selTrailer=el.dataset.type;
+  // Show/hide reefer temp row
+  var reeferRow=document.getElementById('reeferTempRow');
+  if(reeferRow) reeferRow.style.display=el.dataset.type==='reefer'?'block':'none';
   onInput();
 }
 function selTrailerByType(type){
   document.querySelectorAll('.tbtn').forEach(function(b){b.classList.toggle('sel',b.dataset.type===type);});
   A.selTrailer=type;
+  var reeferRow=document.getElementById('reeferTempRow');
+  if(reeferRow) reeferRow.style.display=type==='reefer'?'block':'none';
+}
+function selReeferTier(btn){
+  document.querySelectorAll('.temp-tier-btn').forEach(function(b){
+    b.style.background='rgba(255,255,255,.04)';
+    b.style.border='1px solid rgba(255,255,255,.1)';
+  });
+  btn.style.background='rgba(0,142,151,.15)';
+  btn.style.border='1px solid rgba(0,142,151,.4)';
+  A.reeferTier=btn.dataset.tier;
+  // Set default set point for tier
+  var defaults={fresh:34,chilled:29,frozen:-10};
+  var sp=document.getElementById('reeferSetPoint');
+  if(sp) sp.value=defaults[A.reeferTier];
+  A.reeferSetPoint=defaults[A.reeferTier];
+  updateReeferLabel();
+  onInput();
+}
+function onReeferTempChange(){
+  var sp=parseFloat(document.getElementById('reeferSetPoint').value)||34;
+  A.reeferSetPoint=sp;
+  // Auto-select tier based on set point
+  if(sp<=27) A.reeferTier='frozen';
+  else if(sp<=33) A.reeferTier='chilled';
+  else A.reeferTier='fresh';
+  document.querySelectorAll('.temp-tier-btn').forEach(function(b){
+    var active=b.dataset.tier===A.reeferTier;
+    b.style.background=active?'rgba(0,142,151,.15)':'rgba(255,255,255,.04)';
+    b.style.border=active?'1px solid rgba(0,142,151,.4)':'1px solid rgba(255,255,255,.1)';
+  });
+  updateReeferLabel();
+  onInput();
+}
+function updateReeferLabel(){
+  var el=document.getElementById('reeferTempLabel');
+  if(!el) return;
+  var sp=A.reeferSetPoint||34;
+  if(sp<=27){
+    el.style.color='#a78bfa';
+    el.textContent='Frozen — unit runs hardest (+premium cost)';
+  } else if(sp<=33){
+    el.style.color='#60a5fa';
+    el.textContent='Chilled/Meat — moderate unit load (+standard premium)';
+  } else {
+    el.style.color='#4ade80';
+    el.textContent='Fresh/Produce — standard reefer rate';
+  }
 }
 
 /* ─── DRIVER CHIPS ─── */
@@ -996,13 +1077,25 @@ function computeAll(rate,loadedMiles){
     else if(maxWind>=35) windFactor=0.85;
   }
 
-  // Reefer cold/heat bonus
+  // Reefer fuel penalty based on LOAD SET POINT temperature (not ambient weather)
+  // Physics: reefer units burn ~0.5-1.5 gal/hr depending on delta between set point and ambient
+  // Frozen (-20 to 27°F): unit runs near max capacity — highest fuel burn
+  // Chilled (28-33°F): moderate unit load
+  // Fresh (34°F+): lightest unit load, standard rate
   var reeferBonus=0;
   if(A.selTrailer==='reefer'){
-    var coldTemp=Math.min(A.wxOrigin?A.wxOrigin.temp:70,A.wxDest?A.wxDest.temp:70);
-    if(coldTemp<20) reeferBonus=8;
-    else if(coldTemp<32) reeferBonus=4;
-    else if(coldTemp>=100) reeferBonus=6;
+    var setPoint=A.reeferSetPoint!=null?A.reeferSetPoint:34;
+    var tier=A.reeferTier||'fresh';
+    if(tier==='frozen'||setPoint<=27){
+      reeferBonus=14; // Frozen: ~+14¢/mi on top of base reeferFuelCpm
+    } else if(tier==='chilled'||setPoint<=33){
+      reeferBonus=7;  // Chilled: ~+7¢/mi
+    } else {
+      reeferBonus=0;  // Fresh: standard rate
+    }
+    // Additional ambient heat penalty (hot day = unit works harder to maintain frozen)
+    var ambientTemp=Math.max(A.wxOrigin?A.wxOrigin.temp:70, A.wxDest?A.wxDest.temp:70);
+    if(ambientTemp>=90&&setPoint<=33) reeferBonus+=4; // Hot day + cold load = extra strain
   }
 
   // WEIGHT-BASED FUEL PENALTY
