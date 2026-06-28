@@ -228,6 +228,7 @@ select option{background:#1e2a3a}
   <div class="nt active" onclick="sw('dispatch')">Dispatch</div>
   <div class="nt" onclick="sw('drivers')">Driver Profiles</div>
   <div class="nt" onclick="sw('settings')">Settings</div>
+  <div class="nt" onclick="sw('market')">🗺️ Market</div>
 </div>
 
 <div class="body">
@@ -445,6 +446,55 @@ select option{background:#1e2a3a}
   </div>
 </div>
 
+<!-- ===== MARKET HEATMAP ===== -->
+<div class="tc" id="tab-market">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <div class="ct" style="margin-bottom:2px">Freight Market Heatmap</div>
+        <div style="font-size:11px;color:var(--muted)">Outbound average RPM by state · Powered by Trulos</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="mktEquip" onchange="renderMarket()" style="background:#1a2233;border:1px solid rgba(0,142,151,.3);color:#fff;border-radius:5px;padding:4px 8px;font-size:12px;outline:none">
+          <option value="van">Dry Van</option>
+          <option value="reefer">Reefer</option>
+          <option value="flatbed">Flatbed</option>
+        </select>
+        <div id="mktUpdated" style="font-size:10px;color:var(--muted)"></div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;font-size:11px">
+      <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;background:#22c55e;border-radius:2px"></div>Hot ($2.50+/mi)</div>
+      <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;background:#eab308;border-radius:2px"></div>Active ($2.00–$2.49)</div>
+      <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;background:#ef4444;border-radius:2px"></div>Soft (&lt;$2.00)</div>
+      <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:12px;background:rgba(255,255,255,.1);border-radius:2px"></div>No data</div>
+    </div>
+
+    <!-- Map + List side by side -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">
+
+      <!-- SVG USA Map -->
+      <div style="position:relative">
+        <svg id="usaMap" viewBox="0 0 960 600" style="width:100%;height:auto;background:transparent">
+          <!-- State paths will be injected by JS -->
+        </svg>
+        <!-- Tooltip -->
+        <div id="mktTooltip" style="display:none;position:fixed;background:#1a2e40;border:1px solid #008E97;border-radius:6px;padding:8px 12px;font-size:12px;pointer-events:none;z-index:9999;min-width:160px"></div>
+      </div>
+
+      <!-- Top Lanes List -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--aqua);margin-bottom:8px">Top 20 Lanes by RPM</div>
+        <div id="mktLaneList" style="display:flex;flex-direction:column;gap:3px;max-height:480px;overflow-y:auto"></div>
+      </div>
+
+    </div>
+    <div id="mktEmpty" style="display:none;text-align:center;padding:40px;color:var(--muted)">Loading market data...</div>
+  </div>
+</div>
+
 </div><!-- /body -->
 </div><!-- /app -->
 
@@ -613,7 +663,8 @@ function sw(t){
   document.querySelectorAll('.tc').forEach(function(e){e.classList.remove('active');});
   document.querySelectorAll('.nt').forEach(function(e){e.classList.remove('active');});
   document.getElementById('tab-'+t).classList.add('active');
-  ['dispatch','drivers','settings'].forEach(function(name,i){if(name===t)document.querySelectorAll('.nt')[i].classList.add('active');});
+  ['dispatch','drivers','settings','market'].forEach(function(name,i){if(name===t)document.querySelectorAll('.nt')[i].classList.add('active');});
+  if(t==='market') renderMarket();
 }
 function selT(el){
   document.querySelectorAll('.tbtn').forEach(function(b){b.classList.remove('sel');});
@@ -1546,6 +1597,184 @@ function clearAll(){
   document.getElementById('statusMsg').textContent='';
   document.getElementById('resultsArea').innerHTML='<div class="empty">Select a driver, build your lane, enter the broker rate, then click Analyze Load.</div>';
 }
-</script>
+/* ─── MARKET HEATMAP ─── */
+
+// Simplified USA state paths (D3 Albers projection, 960x600)
+var STATE_PATHS = {
+  AL:{d:"M 573 357 L 574 400 L 562 400 L 556 416 L 553 400 L 553 357 Z",cx:563,cy:380},
+  AK:{d:"M 110 480 L 200 480 L 200 560 L 110 560 Z",cx:155,cy:520},
+  AZ:{d:"M 178 310 L 238 310 L 238 388 L 178 388 Z",cx:208,cy:349},
+  AR:{d:"M 530 340 L 573 340 L 573 357 L 553 357 L 548 370 L 530 370 Z",cx:551,cy:354},
+  CA:{d:"M 110 240 L 178 240 L 178 388 L 140 388 L 110 310 Z",cx:144,cy:314},
+  CO:{d:"M 290 280 L 370 280 L 370 340 L 290 340 Z",cx:330,cy:310},
+  CT:{d:"M 778 210 L 800 210 L 800 230 L 778 230 Z",cx:789,cy:220},
+  DE:{d:"M 768 230 L 785 230 L 785 248 L 768 248 Z",cx:776,cy:239},
+  FL:{d:"M 573 400 L 630 400 L 650 460 L 600 480 L 573 440 Z",cx:610,cy:437},
+  GA:{d:"M 573 357 L 630 357 L 630 400 L 573 400 Z",cx:601,cy:378},
+  HI:{d:"M 230 530 L 340 530 L 340 560 L 230 560 Z",cx:285,cy:545},
+  ID:{d:"M 178 160 L 240 160 L 248 240 L 206 240 L 192 220 L 178 220 Z",cx:213,cy:200},
+  IL:{d:"M 545 240 L 580 240 L 580 320 L 545 320 Z",cx:562,cy:280},
+  IN:{d:"M 580 240 L 610 240 L 610 310 L 580 310 Z",cx:595,cy:275},
+  IA:{d:"M 490 230 L 545 230 L 545 270 L 490 270 Z",cx:517,cy:250},
+  KS:{d:"M 390 300 L 490 300 L 490 340 L 390 340 Z",cx:440,cy:320},
+  KY:{d:"M 580 310 L 650 310 L 650 340 L 580 340 Z",cx:615,cy:325},
+  LA:{d:"M 503 400 L 553 400 L 556 416 L 540 430 L 503 430 Z",cx:528,cy:413},
+  ME:{d:"M 820 140 L 860 140 L 860 200 L 820 200 Z",cx:840,cy:170},
+  MD:{d:"M 730 245 L 780 245 L 780 265 L 730 265 Z",cx:755,cy:255},
+  MA:{d:"M 790 190 L 840 190 L 840 215 L 790 215 Z",cx:815,cy:202},
+  MI:{d:"M 590 180 L 650 180 L 650 240 L 590 240 Z",cx:620,cy:210},
+  MN:{d:"M 450 160 L 520 160 L 520 230 L 450 230 Z",cx:485,cy:195},
+  MS:{d:"M 540 340 L 573 340 L 573 400 L 540 400 Z",cx:556,cy:370},
+  MO:{d:"M 490 290 L 550 290 L 550 340 L 490 340 Z",cx:520,cy:315},
+  MT:{d:"M 240 150 L 370 150 L 370 220 L 240 220 Z",cx:305,cy:185},
+  NE:{d:"M 390 260 L 490 260 L 490 300 L 390 300 Z",cx:440,cy:280},
+  NV:{d:"M 178 220 L 238 220 L 238 310 L 200 310 L 178 280 Z",cx:208,cy:265},
+  NH:{d:"M 806 170 L 826 170 L 826 210 L 806 210 Z",cx:816,cy:190},
+  NJ:{d:"M 768 220 L 790 220 L 790 250 L 768 250 Z",cx:779,cy:235},
+  NM:{d:"M 270 340 L 350 340 L 350 410 L 270 410 Z",cx:310,cy:375},
+  NY:{d:"M 720 180 L 800 180 L 800 230 L 720 230 Z",cx:760,cy:205},
+  NC:{d:"M 650 310 L 740 310 L 740 345 L 650 345 Z",cx:695,cy:327},
+  ND:{d:"M 380 160 L 460 160 L 460 200 L 380 200 Z",cx:420,cy:180},
+  OH:{d:"M 620 240 L 670 240 L 670 295 L 620 295 Z",cx:645,cy:267},
+  OK:{d:"M 390 340 L 510 340 L 510 380 L 390 380 Z",cx:450,cy:360},
+  OR:{d:"M 140 200 L 215 200 L 215 265 L 140 265 Z",cx:177,cy:232},
+  PA:{d:"M 680 220 L 760 220 L 760 262 L 680 262 Z",cx:720,cy:241},
+  RI:{d:"M 808 208 L 826 208 L 826 222 L 808 222 Z",cx:817,cy:215},
+  SC:{d:"M 650 345 L 700 345 L 700 385 L 650 385 Z",cx:675,cy:365},
+  SD:{d:"M 380 200 L 460 200 L 460 250 L 380 250 Z",cx:420,cy:225},
+  TN:{d:"M 553 340 L 650 340 L 650 367 L 553 367 Z",cx:601,cy:353},
+  TX:{d:"M 350 350 L 510 350 L 510 450 L 420 470 L 350 420 Z",cx:430,cy:405},
+  UT:{d:"M 238 260 L 295 260 L 295 340 L 238 340 Z",cx:266,cy:300},
+  VT:{d:"M 786 165 L 808 165 L 808 200 L 786 200 Z",cx:797,cy:182},
+  VA:{d:"M 670 280 L 760 280 L 760 318 L 670 318 Z",cx:715,cy:299},
+  WA:{d:"M 140 140 L 215 140 L 215 200 L 140 200 Z",cx:177,cy:170},
+  WV:{d:"M 668 262 L 720 262 L 720 298 L 668 298 Z",cx:694,cy:280},
+  WI:{d:"M 510 175 L 570 175 L 570 240 L 510 240 Z",cx:540,cy:207},
+  WY:{d:"M 268 220 L 370 220 L 370 285 L 268 285 Z",cx:319,cy:252},
+  DC:{d:"M 752 258 L 762 258 L 762 268 L 752 268 Z",cx:757,cy:263}
+};
+
+var STATE_ABBR_TO_NAME = {
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',
+  DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',
+  KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',
+  MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',
+  NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',
+  OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',
+  TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',
+  WI:'Wisconsin',WY:'Wyoming',DC:'D.C.'
+};
+
+function getRpmColor(rpm){
+  if(!rpm||rpm<0.5) return 'rgba(255,255,255,0.08)';
+  if(rpm>=2.5) return '#16a34a';
+  if(rpm>=2.2) return '#22c55e';
+  if(rpm>=2.0) return '#eab308';
+  if(rpm>=1.7) return '#f97316';
+  return '#ef4444';
+}
+
+function renderMarket(){
+  var equip=document.getElementById('mktEquip')?document.getElementById('mktEquip').value:'van';
+  var svg=document.getElementById('usaMap');
+  var laneList=document.getElementById('mktLaneList');
+  if(!svg||!laneList) return;
+
+  // Build state RPM map from Trulos data
+  var stateRpm={};
+  var allLanes=[];
+
+  if(A.trulosData){
+    var lanes=A.trulosData[equip]||A.trulosData.van||[];
+    // Aggregate by origin state
+    var byState={};
+    lanes.forEach(function(l){
+      var orig=l.origin_state||l.orig||'';
+      var dest=l.dest_state||l.dest||'';
+      var rpm=parseFloat(l.avg_rate_rpm||l.rate||0);
+      var trend=l.trend_direction||l.trend||'flat';
+      if(!orig||!dest||!rpm) return;
+      if(!byState[orig]) byState[orig]={total:0,count:0};
+      byState[orig].total+=rpm; byState[orig].count++;
+      allLanes.push({orig,dest,rpm,trend,
+        low:parseFloat(l.low_rate||0),high:parseFloat(l.high_rate||0)});
+    });
+    Object.keys(byState).forEach(function(s){
+      stateRpm[s]=(byState[s].total/byState[s].count);
+    });
+    document.getElementById('mktUpdated').textContent='Live data · '+new Date().toLocaleDateString();
+  } else {
+    document.getElementById('mktUpdated').textContent='Loading...';
+    fetch('https://trulos.com/daily/rates-v2/state_rates_trends.json')
+      .then(function(r){return r.json();}).then(function(d){
+        A.trulosData=d; renderMarket();
+      }).catch(function(){
+        document.getElementById('mktEmpty').style.display='block';
+        document.getElementById('mktEmpty').textContent='Market data unavailable';
+      });
+    return;
+  }
+
+  // Draw states
+  svg.innerHTML='';
+  Object.keys(STATE_PATHS).forEach(function(abbr){
+    var sp=STATE_PATHS[abbr];
+    var rpm=stateRpm[abbr]||0;
+    var color=getRpmColor(rpm);
+    var g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.style.cursor='pointer';
+
+    var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',sp.d);
+    path.setAttribute('fill',color);
+    path.setAttribute('stroke','rgba(0,0,0,0.4)');
+    path.setAttribute('stroke-width','0.8');
+    g.appendChild(path);
+
+    // State label
+    var text=document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x',sp.cx); text.setAttribute('y',sp.cy+4);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('fill','rgba(255,255,255,0.85)');
+    text.setAttribute('font-size','8');
+    text.setAttribute('font-weight','600');
+    text.setAttribute('pointer-events','none');
+    text.textContent=abbr;
+    g.appendChild(text);
+
+    // Tooltip
+    g.addEventListener('mousemove',function(e){
+      var tt=document.getElementById('mktTooltip');
+      tt.style.display='block';
+      tt.style.left=(e.clientX+12)+'px';
+      tt.style.top=(e.clientY-10)+'px';
+      tt.innerHTML='<div style="font-weight:700;color:#fff;margin-bottom:4px">'+STATE_ABBR_TO_NAME[abbr]+'</div>'
+        +(rpm?'<div style="color:#4ade80;font-size:14px;font-weight:800">$'+rpm.toFixed(2)+'/mi</div>'
+             +'<div style="font-size:10px;color:var(--muted)">Avg outbound RPM</div>'
+            :'<div style="color:rgba(255,255,255,.4)">No data</div>');
+    });
+    g.addEventListener('mouseleave',function(){
+      document.getElementById('mktTooltip').style.display='none';
+    });
+    svg.appendChild(g);
+  });
+
+  // Top lanes list — sorted by RPM descending
+  allLanes.sort(function(a,b){return b.rpm-a.rpm;});
+  var top=allLanes.slice(0,20);
+  laneList.innerHTML=top.map(function(l,i){
+    var tc=l.trend==='rising'||l.trend==='up'?'#4ade80':l.trend==='falling'||l.trend==='down'?'#f87171':'#facc15';
+    var ta=l.trend==='rising'||l.trend==='up'?'▲':l.trend==='falling'||l.trend==='down'?'▼':'→';
+    var bc=l.rpm>=2.5?'rgba(34,197,94,.12)':l.rpm>=2.0?'rgba(234,179,8,.1)':'rgba(239,68,68,.1)';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:'+bc+';border-radius:5px;cursor:pointer" onclick="document.getElementById(\'mktEquip\').value=\''+equip+'\'">'
+      +'<div style="font-size:10px;color:var(--muted);min-width:16px;text-align:right">'+(i+1)+'</div>'
+      +'<div style="flex:1;font-size:11px;font-weight:600">'+l.orig+' → '+l.dest+'</div>'
+      +'<div style="font-size:12px;font-weight:800;color:#fff">$'+l.rpm.toFixed(2)+'</div>'
+      +'<div style="font-size:11px;color:'+tc+'">'+ta+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+
 </body>
 </html>
