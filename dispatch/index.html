@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dispatch — Road Pro Carriers</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#001A57;--aqua:#008E97;--orange:#F58220;
+  --bg:#0A0E1A;--card:#111827;--card2:#1a2233;--card3:#0d1520;
+  --border:rgba(0,142,151,.2);--muted:rgba(255,255,255,.45);--dim:rgba(255,255,255,.2);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:#fff;font-size:13px}
+.app{max-width:960px;margin:0 auto}
+.hdr{background:var(--navy);padding:11px 16px;display:flex;justify-content:space-between;align-items:center;border-radius:12px 12px 0 0}
+.logo{font-size:14px;font-weight:700}.logo span{color:var(--aqua)}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.pill{display:flex;align-items:center;gap:4px;background:rgba(0,142,151,.15);border:1px solid rgba(0,142,151,.3);border-radius:20px;padding:3px 9px;font-size:10px;font-weight:600;color:var(--aqua)}
+.dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hdr-time{font-size:10px;color:var(--muted)}
+.nav{background:var(--navy);border-top:1px solid rgba(255,255,255,.07);display:flex;padding:0 16px;gap:2px}
+.nt{padding:7px 14px;font-size:11px;font-weight:600;color:rgba(255,255,255,.4);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.nt.active{color:#fff;border-bottom-color:var(--aqua)}.nt:hover{color:rgba(255,255,255,.7)}
+.body{padding:12px 14px;background:var(--bg);border-radius:0 0 12px 12px}
+.tc{display:none}.tc.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px}
+.ct{font-size:10px;font-weight:700;color:var(--aqua);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.f label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.f input,.f select{width:100%;background:#1e2a3a;border:1px solid rgba(0,142,151,.25);border-radius:6px;color:#fff;font-size:13px;padding:8px 10px;outline:none;font-family:inherit}
+.f input:focus,.f select:focus{border-color:var(--aqua)}
+.f input::placeholder,.f input::-webkit-input-placeholder{color:var(--dim)}
+select option{background:#1e2a3a}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.btn{padding:9px 18px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.btn-p{background:var(--aqua);color:#fff}.btn-p:hover{background:#009faa}
+.btn-g{background:transparent;border:1px solid rgba(0,142,151,.35);color:var(--aqua);font-size:11px;padding:7px 12px}.btn-g:hover{background:rgba(0,142,151,.1)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-danger{background:transparent;border:1px solid rgba(239,68,68,.35);color:#f87171;font-size:11px;padding:5px 10px}
+.btn-add{background:rgba(0,142,151,.1);border:1px dashed rgba(0,142,151,.4);color:var(--aqua);border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;cursor:pointer;width:100%;text-align:center;transition:all .2s}
+.btn-add:hover{background:rgba(0,142,151,.18)}
+
+/* DRIVER CHIPS */
+.dchips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.dchip{background:var(--card2);border:2px solid rgba(0,142,151,.2);border-radius:8px;padding:8px 12px;cursor:pointer;transition:all .2s;min-width:88px;text-align:center}
+.dchip:hover{border-color:var(--aqua)}.dchip.sel{border-color:var(--aqua);background:rgba(0,142,151,.1)}
+.dav{width:30px;height:30px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--aqua);margin:0 auto 4px}
+.dname{font-size:12px;font-weight:700;color:#fff}
+.dtruck{font-size:10px;color:var(--muted);margin-top:1px}
+.dpay{font-size:10px;color:var(--aqua);margin-top:1px}
+.dbadge{background:rgba(0,142,151,.08);border:1px solid rgba(0,142,151,.25);border-radius:6px;padding:7px 12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.dbi{font-size:11px}.dbl{color:var(--muted)}.dbv{color:#fff;font-weight:600}
+
+/* TRAILER BUTTONS — clean, no descriptions */
+.tbtns{display:flex;gap:6px;flex-wrap:wrap}
+.tbtn{background:var(--card2);border:2px solid rgba(0,142,151,.2);border-radius:6px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);transition:all .2s;white-space:nowrap}
+.tbtn:hover{border-color:var(--aqua);color:#fff}
+.tbtn.sel{border-color:var(--orange);color:#fff;background:rgba(245,130,32,.1)}
+
+/* ZIP STOPS BUILDER */
+.stops-section{margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
+.stop-block{background:#1a2233;border-radius:8px;padding:10px 12px;border-left:3px solid rgba(0,142,151,.3);position:relative;overflow:visible}
+.stop-block-cur{border-left-color:#60a5fa}
+.stop-block-pu{border-left-color:#4ade80}
+.stop-block-del{border-left-color:#f87171}
+.stop-block-stop{border-left-color:var(--orange)}
+.stop-block-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.stop-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.stop-lbl-cur{color:#60a5fa}
+.stop-lbl-pu{color:#4ade80}
+.stop-lbl-del{color:#f87171}
+.stop-lbl-stop{color:var(--orange)}
+.stop-remove{background:transparent;border:none;color:rgba(239,68,68,.5);cursor:pointer;padding:2px 4px;font-size:14px;line-height:1}
+.stop-remove:hover{color:#f87171}
+.stop-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;position:relative}
+.stop-input-wrap{flex:1;position:relative}
+.stop-input{width:100%;background:#111827;border:1px solid rgba(0,142,151,.25);border-radius:6px;color:#fff;font-size:13px;padding:9px 12px;outline:none;font-family:inherit}
+.stop-input:focus{border-color:var(--aqua);background:#0f1e2e}
+.stop-input::placeholder{color:var(--dim)}
+.acdd{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#1a2e40;border:1px solid var(--aqua);border-radius:6px;z-index:9999;display:none;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.7)}
+.aci{padding:9px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px}
+.aci:hover{background:rgba(0,142,151,.2);color:var(--aqua)}
+.aci:last-child{border-bottom:none}
+.aci-zip{font-weight:700;color:#fff;min-width:52px}
+.aci-city{color:rgba(255,255,255,.7)}
+
+/* PICKUP / DELIVERY SIDE BY SIDE */
+.pu-del-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.pu-col,.del-col{display:flex;flex-direction:column;gap:6px;min-width:0;overflow:visible}
+.stop-input-wrap{position:relative;overflow:visible}
+.stop-block{contain:layout}
+.col-header{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:0 2px 2px}
+
+/* ROUTE SUMMARY BAR */
+.route-summary{background:var(--card2);border-radius:6px;padding:9px 12px;margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rs-item{font-size:12px}
+.rs-lbl{color:var(--muted);font-size:10px}
+.rs-val{font-weight:700;color:#fff}
+.rs-divider{color:rgba(255,255,255,.15);font-size:14px}
+.dead-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700}
+.dead-free{background:#14532d;color:#4ade80}
+.dead-paid{background:#451a03;color:#fb923c}
+
+/* SIGNAL */
+.sig-block{border-radius:8px;padding:12px 14px;border:2px solid;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.sig-word{font-size:26px;font-weight:900;letter-spacing:.4px}
+.sig-sub{font-size:11px;margin-top:2px;opacity:.75}
+
+/* RATE COMPARE */
+.rate-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.rcol{background:var(--card2);border-radius:8px;padding:12px;text-align:center;border:2px solid rgba(255,255,255,.06)}
+.rcol-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.rcol-big{font-size:26px;font-weight:900;line-height:1}
+.rcol-rpm{font-size:12px;font-weight:600;margin-top:3px}
+.rcol-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.gap-note{background:var(--card3);border-radius:6px;padding:8px 12px;font-size:11px;margin-top:6px;color:rgba(255,255,255,.7)}
+.rate-bar-wrap{height:10px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;margin:8px 0 4px;position:relative}
+.rate-bar-be{position:absolute;top:0;height:100%;background:rgba(255,255,255,.1)}
+.rate-bar-offer{position:absolute;top:0;height:100%;transition:width .6s ease}
+.rate-bar-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--dim);margin-top:2px}
+
+/* METRICS */
+.mrow{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}
+.m{background:var(--card2);border-radius:7px;padding:8px 9px}
+.mv{font-size:16px;font-weight:800;line-height:1}
+.ml{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.ms{font-size:9px;color:var(--dim);margin-top:1px}
+
+/* COST TABLE */
+.ctbl{width:100%;border-collapse:collapse;font-size:12px}
+.ctbl td{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.04)}
+.ctbl .cl{color:var(--muted)}.ctbl .cv{text-align:right;font-weight:600}
+.ctbl .tot td{border-top:1px solid rgba(0,142,151,.3);padding-top:7px;font-size:13px;font-weight:700;border-bottom:none}
+.hzrow td{background:rgba(251,146,60,.04)}
+
+/* WEATHER */
+.wx-row{display:flex;gap:8px;margin-top:8px}
+.wx-card{flex:1;background:var(--card3);border-radius:6px;padding:8px 10px;border:1px solid var(--border)}
+.wx-city{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.wx-temp{font-size:17px;font-weight:800;color:#fff;margin:2px 0}
+.wx-desc{font-size:11px;color:rgba(255,255,255,.65)}
+.wx-wind{font-size:10px;color:var(--muted);margin-top:2px}
+.wx-hz{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;margin-top:4px;display:inline-block}
+.hz0{background:rgba(34,197,94,.12);color:#4ade80}
+.hz1{background:rgba(250,204,21,.12);color:#facc15}
+.hz2{background:rgba(251,146,60,.12);color:#fb923c}
+.hz3{background:rgba(239,68,68,.12);color:#f87171}
+
+/* MARKET STRIP */
+.mkt-strip{background:var(--card3);border-radius:6px;padding:8px 12px;margin-bottom:8px}
+.mkt-title{font-size:9px;font-weight:700;color:var(--aqua);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.mkt-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.mkt-row:last-child{border:none}
+.mkt-lbl{color:var(--muted)}
+
+/* AI */
+.ai-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px}
+.ai-rec{font-size:22px;font-weight:900;margin-bottom:5px}
+.ai-text{font-size:12px;color:rgba(255,255,255,.72);line-height:1.65}
+.counter-box{background:rgba(245,130,32,.07);border:1px solid rgba(245,130,32,.2);border-radius:6px;padding:7px 10px;margin-top:7px;font-size:12px}
+.ai-reload{font-size:11px;color:var(--aqua);margin-top:6px}
+.flag{font-size:11px;color:#fca5a5;padding:2px 0}
+
+.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(0,142,151,.3);border-top-color:var(--aqua);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading{display:flex;align-items:center;gap:8px;color:var(--aqua);font-size:12px;padding:10px 0}
+.empty{background:var(--card);border:1px dashed rgba(0,142,151,.15);border-radius:8px;padding:20px;text-align:center;color:var(--muted);font-size:12px}
+
+/* SETTINGS */
+.key-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.key-row label{font-size:10px;color:var(--muted);white-space:nowrap;min-width:80px}
+.key-row input{flex:1;background:#1e2a3a;border:1px solid rgba(0,142,151,.25);border-radius:5px;color:#fff;font-size:11px;padding:6px 8px;outline:none}
+.key-row input:focus{border-color:var(--aqua)}
+.ks{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;flex-shrink:0}
+.ks-ok{background:#14532d;color:#4ade80}.ks-no{background:#1f2937;color:var(--dim)}.ks-fetch{background:#451a03;color:#fb923c}
+
+/* PROFILES */
+.prow{background:var(--card2);border-radius:7px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.pb{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700}
+.pb-cpm{background:#134e4a;color:#2dd4bf}
+.pb-pct{background:#1e3a5f;color:#60a5fa}
+.pb-flat{background:#451a03;color:#fb923c}
+
+.hint{font-size:9px;color:var(--dim);margin-top:2px}
+
+/* COLOR GUIDE */
+.color-guide{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding:8px 12px;background:var(--card3);border-radius:6px;border:1px solid var(--border);align-items:center}
+.cg-title{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-right:4px;flex-shrink:0}
+.cg-item{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px}
+.cg-green{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25)}
+.cg-yellow{background:rgba(250,204,21,.12);color:#facc15;border:1px solid rgba(250,204,21,.25)}
+.cg-red{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25)}
+.cg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* LIVE PREVIEW PANEL — shows before Analyze is clicked */
+.live-preview{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px}
+.lp-header{font-size:10px;font-weight:700;color:var(--aqua);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.lp-signal{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 12px;border-radius:7px;border:2px solid}
+.lp-word{font-size:22px;font-weight:900;letter-spacing:.4px}
+.lp-pct{font-size:12px;font-weight:600;margin-top:2px;opacity:.8}
+.lp-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.lp-col{background:var(--card2);border-radius:7px;padding:9px 10px;text-align:center}
+.lp-col-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.lp-col-big{font-size:20px;font-weight:900;line-height:1}
+.lp-col-rpm{font-size:11px;font-weight:600;margin-top:3px}
+.lp-bar-wrap{height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;margin:6px 0 3px;position:relative}
+.lp-bar-be{position:absolute;top:0;height:100%;background:rgba(255,255,255,.1)}
+.lp-bar-offer{position:absolute;top:0;height:100%;transition:width .4s ease}
+.lp-bar-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--dim)}
+.lp-gap-note{font-size:11px;padding:6px 10px;border-radius:5px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <a href="/" style="text-decoration:none"><div class="logo">ROAD PRO <span>CARRIERS</span></div></a><div style="font-size:11px;color:rgba(255,255,255,.4);margin-left:6px">Dispatch Portal</div>
+  <div class="hdr-r">
+    <div class="pill"><div class="dot"></div>Claude Active</div>
+    <div class="hdr-time" id="rpcTime"></div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="nt active" onclick="sw('dispatch')">Dispatch</div>
+  <div class="nt" onclick="sw('drivers')">Driver Profiles</div>
+  <div class="nt" onclick="sw('settings')">Settings</div>
+  <div class="nt" onclick="sw('market')">🗺️ Market</div>
+</div>
+
+<div class="body">
+
+<!-- ===== DISPATCH ===== -->
+<div class="tc active" id="tab-dispatch">
+
+  <!-- DRIVER SELECT -->
+  <div class="card">
+    <div class="ct">Select Driver</div>
+    <div class="dchips" id="driverChips"><div style="color:var(--muted);font-size:12px;padding:6px">No drivers yet — go to Driver Profiles to add your team.</div></div>
+    <div class="dbadge" id="driverBadge" style="display:none"></div>
+  </div>
+
+  <!-- LANE ENTRY -->
+  <div class="card">
+    <div class="ct">Lane &amp; Stops</div>
+
+    <div class="stops-section">
+
+      <!-- CURRENT LOCATION — full width -->
+      <div class="stop-block stop-block-cur">
+        <div class="stop-block-header">
+          <span class="stop-label stop-lbl-cur">📍 Current Location</span>
+          <span style="font-size:10px;color:var(--muted)">Where is the truck right now?</span>
+        </div>
+        <div class="stop-input-wrap">
+          <input class="stop-input" id="curLocInput" type="text" placeholder="ZIP or City, State — where truck is now" oninput="acInput(this,'curLocAC','curLoc')" autocomplete="off"/>
+          <div class="acdd" id="curLocAC"></div>
+        </div>
+      </div>
+
+      <!-- PICKUP + DELIVERY side by side -->
+      <div class="pu-del-row">
+        <div class="pu-col">
+          <div class="col-header stop-lbl-pu">🟢 Pickup</div>
+          <div id="puStops"></div>
+          <div class="btn-add" onclick="addStop('pu')" style="margin-top:4px">+ Add Pickup Stop</div>
+        </div>
+        <div class="del-col">
+          <div class="col-header stop-lbl-del">🔴 Delivery</div>
+          <div id="delStops"></div>
+          <div class="btn-add" onclick="addStop('del')" style="margin-top:4px">+ Add Delivery Stop</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ROUTE SUMMARY -->
+    <div class="route-summary" id="routeSummary" style="display:none"></div>
+
+    <!-- TRAILER + RATE -->
+    <div style="margin-bottom:10px">
+      <div class="f" style="margin-bottom:6px"><label>Trailer Type</label></div>
+      <div class="tbtns">
+        <div class="tbtn sel" data-type="dryvan" onclick="selT(this)">📦 Dry Van</div>
+        <div class="tbtn" data-type="reefer" onclick="selT(this)">❄️ Reefer</div>
+        <div class="tbtn" data-type="flatbed" onclick="selT(this)">🏗️ Flatbed</div>
+        <div class="tbtn" data-type="poweronly" onclick="selT(this)">🚛 Power Only</div>
+        <div class="tbtn" data-type="expedited" onclick="selT(this)">⚡ Expedited</div>
+      </div>
+
+      <!-- REEFER TEMP — only shows when Reefer is selected -->
+      <div id="reeferTempRow" style="display:none;margin-top:10px;background:rgba(0,142,151,.08);border:1px solid rgba(0,142,151,.2);border-radius:8px;padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--aqua);margin-bottom:8px">❄️ Load Temperature</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="temp-tier-btn sel" data-tier="fresh" onclick="selReeferTier(this)" style="text-align:center;padding:8px;border-radius:6px;background:rgba(0,142,151,.15);border:1px solid rgba(0,142,151,.4);cursor:pointer">
+            <div style="font-size:16px">🥦</div>
+            <div style="font-size:11px;font-weight:700;color:#4ade80">Fresh/Produce</div>
+            <div style="font-size:10px;color:var(--muted)">34°F – 50°F</div>
+          </div>
+          <div class="temp-tier-btn" data-tier="chilled" onclick="selReeferTier(this)" style="text-align:center;padding:8px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);cursor:pointer">
+            <div style="font-size:16px">🥩</div>
+            <div style="font-size:11px;font-weight:700;color:#60a5fa">Chilled/Meat</div>
+            <div style="font-size:10px;color:var(--muted)">28°F – 33°F</div>
+          </div>
+          <div class="temp-tier-btn" data-tier="frozen" onclick="selReeferTier(this)" style="text-align:center;padding:8px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);cursor:pointer">
+            <div style="font-size:16px">🧊</div>
+            <div style="font-size:11px;font-weight:700;color:#a78bfa">Frozen</div>
+            <div style="font-size:10px;color:var(--muted)">-20°F – 27°F</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="font-size:11px;color:var(--muted);white-space:nowrap">Set Point (°F):</label>
+          <input type="number" id="reeferSetPoint" value="34" min="-20" max="70"
+            style="width:80px;background:#111827;border:1px solid rgba(0,142,151,.3);border-radius:5px;color:#fff;font-size:13px;padding:5px 8px;outline:none"
+            oninput="onReeferTempChange()"/>
+          <span id="reeferTempLabel" style="font-size:11px;color:#4ade80">Fresh/Produce — standard reefer rate</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="g3" style="margin-bottom:10px">
+      <div class="f">
+        <label>Broker Offered Rate ($)</label>
+        <input type="number" id="fRate" placeholder="2400" oninput="onInput()"/>
+      </div>
+      <div class="f">
+        <label>Broker MC # (optional)</label>
+        <input type="text" id="fMC" placeholder="MC-123456"/>
+      </div>
+      <div class="f">
+        <label>Load Weight (lbs)</label>
+        <input type="number" id="fWeight" placeholder="42000"/>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-p" onclick="analyze()">Analyze Load</button>
+      <button class="btn btn-g" onclick="checkBroker()">Check Broker</button>
+      <button class="btn btn-g" onclick="clearAll()">Clear</button>
+      <div id="statusMsg" style="font-size:11px;color:var(--muted);margin-left:4px"></div>
+    </div>
+  </div>
+
+  <!-- COLOR GUIDE — always visible -->
+  <div class="color-guide">
+    <span class="cg-title">Signal Key:</span>
+    <span class="cg-item cg-green"><span class="cg-dot" style="background:#22c55e"></span>TAKE IT — Offer covers all costs + margin</span>
+    <span class="cg-item cg-yellow"><span class="cg-dot" style="background:#facc15"></span>NEGOTIATE — 85-99% of target, push back</span>
+    <span class="cg-item cg-red"><span class="cg-dot" style="background:#ef4444"></span>PASS — Below 85% of what RPC needs</span>
+  </div>
+
+  <!-- LIVE PREVIEW — updates as soon as rate + miles are entered -->
+  <div id="livePreview" style="display:none"></div>
+
+  <!-- RESULTS — full breakdown after Analyze Load -->
+  <div id="resultsArea">
+    <div class="empty">Select a driver, build your lane, enter the broker rate, then click Analyze Load.</div>
+  </div>
+
+</div><!-- /dispatch -->
+
+<!-- ===== DRIVERS ===== -->
+<div class="tc" id="tab-drivers">
+  <div class="card">
+    <div class="ct">Driver Profiles</div>
+    <div id="profileList"></div>
+    <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:12px;margin-top:4px">
+      <div class="ct" id="dFormTitle">Add Driver</div>
+      <input type="hidden" id="editId"/>
+      <div class="g2" style="margin-bottom:8px">
+        <div class="f"><label>Driver Name</label><input type="text" id="pName" placeholder="John Smith"/></div>
+        <div class="f"><label>Truck / Unit #</label><input type="text" id="pTruck" placeholder="Unit 101"/></div>
+      </div>
+      <div class="g3" style="margin-bottom:8px">
+        <div class="f">
+          <label>Pay Type</label>
+          <select id="pPayType" onchange="togglePay()">
+            <option value="cpm">CPM — Cents Per Mile</option>
+            <option value="pct">Percentage of Load</option>
+            <option value="flat">Flat Rate Per Load</option>
+          </select>
+        </div>
+        <div class="f" id="pf-cpm"><label>Cents Per Mile (whole, e.g. 55)</label><input type="number" id="pCpm" value="55"/></div>
+        <div class="f" id="pf-pct" style="display:none"><label>Percentage (%)</label><input type="number" id="pPct" value="28"/></div>
+        <div class="f" id="pf-flat" style="display:none"><label>Flat Rate ($)</label><input type="number" id="pFlat" value="200"/></div>
+      </div>
+      <div class="g3" style="margin-bottom:10px">
+        <div class="f"><label>Home Base ZIP</label><input type="text" id="pHome" placeholder="28202"/></div>
+        <div class="f"><label>Default Trailer</label>
+          <select id="pEquip">
+            <option value="dryvan">Dry Van</option><option value="reefer">Reefer</option>
+            <option value="flatbed">Flatbed</option><option value="poweronly">Power Only</option>
+            <option value="expedited">Expedited</option>
+          </select>
+        </div>
+        <div class="f"><label>Truck MPG</label><input type="number" id="pMpg" value="6.5" step="0.1"/></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-p btn-sm" onclick="saveDriver()">Save Driver</button>
+        <button class="btn btn-g btn-sm" onclick="clearDForm()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div class="tc" id="tab-settings">
+  <div class="card">
+    <div class="ct">API Keys</div>
+    <div class="key-row">
+      <label>HERE Maps</label>
+      <input type="password" id="kHere" placeholder="HERE API key — same key from your driver pay dashboard" oninput="saveKey('here')"/>
+      <span class="ks ks-no" id="ks-here">Not set</span>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">Get your free HERE key at <a href="https://platform.here.com/sign-up" target="_blank" style="color:var(--aqua)">platform.here.com</a> — same key from your driver pay dashboard works here.</div>
+    <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:6px;padding:10px 12px;margin-bottom:8px">
+      <div style="font-size:12px;font-weight:600;color:#4ade80;margin-bottom:4px">✅ EIA, OpenWeatherMap configured server-side</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.6)">Live diesel prices and weather hazard detection run automatically. HERE Maps key goes above for address autocomplete and truck routing.</div>
+    </div>
+    <div style="background:rgba(0,142,151,.08);border:1px solid rgba(0,142,151,.2);border-radius:6px;padding:8px 12px;margin-top:10px;display:flex;align-items:center;gap:8px">
+      <div class="dot"></div>
+      <div><div style="font-size:12px;font-weight:600">AI Analysis — Always Active</div><div style="font-size:10px;color:var(--muted)">No Anthropic key needed.</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">Carrier Fixed Costs</div>
+    <div class="g3" style="margin-bottom:8px">
+      <div class="f"><label>Truck Payment ($/mo)</label><input type="number" id="sTruck" value="2200" oninput="saveSetting('truckPmt',this.value)"/></div>
+      <div class="f"><label>Insurance ($/mo)</label><input type="number" id="sIns" value="1400" oninput="saveSetting('insurance',this.value)"/></div>
+      <div class="f"><label>ELD + Permits ($/mo)</label><input type="number" id="sEld" value="180" oninput="saveSetting('eld',this.value)"/></div>
+    </div>
+    <div class="g3" style="margin-bottom:8px">
+      <div class="f"><label>Maintenance (¢/mi)</label><input type="number" id="sMaint" value="18" oninput="saveSetting('maint',this.value)"/></div>
+      <div class="f"><label>Tires (¢/mi)</label><input type="number" id="sTires" value="8" oninput="saveSetting('tires',this.value)"/></div>
+      <div class="f"><label>Target Miles/Month</label><input type="number" id="sMonthMi" value="10000" oninput="saveSetting('monthMiles',this.value)"/></div>
+    </div>
+    <div class="g3">
+      <div class="f"><label>Target Margin Multiplier</label><input type="number" id="sMargin" value="1.35" step="0.05" oninput="saveSetting('marginMult',this.value)"/><div class="hint">1.35 = 35% above break-even</div></div>
+      <div class="f"><label>Free Deadhead Threshold (mi)</label><input type="number" id="sFreeDeadMi" value="40" oninput="saveSetting('freeDeadMi',this.value)"/><div class="hint">Under this = free, no driver deadhead pay</div></div>
+      <div class="f"><label>Driver Deadhead Pay (¢/mi)</label><input type="number" id="sDeadCpm" value="35" oninput="saveSetting('deadCpm',this.value)"/><div class="hint">Paid when deadhead exceeds threshold</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MARKET HEATMAP ===== -->
+<div class="tc" id="tab-market">
+
+  <!-- Header bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px 8px">
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#fff">Freight Market Intelligence</div>
+      <div style="font-size:11px;color:var(--muted)">Live data · Powered by Trulos · Updated daily</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="setMktView('heatmap')" id="btnHeat" style="background:rgba(0,142,151,.3);border:1px solid var(--aqua);color:#fff;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">🗺️ Heat Map</button>
+      <button onclick="setMktView('rates')" id="btnRates" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:var(--muted);border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">📊 Lane Rates</button>
+      <button onclick="setMktView('lanes')" id="btnLanes" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:var(--muted);border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">🏆 Top Lanes</button>
+    </div>
+  </div>
+
+  <!-- HEAT MAP VIEW -->
+  <div id="mktViewHeatmap">
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:12px;align-items:start">
+
+      <!-- Trulos iframe -->
+      <div style="border-radius:8px;overflow:hidden;border:1px solid rgba(0,142,151,.2)">
+        <iframe
+          src="https://trulos.com/heat_map/"
+          style="width:100%;height:520px;border:none;background:#0a1628"
+          title="Trulos Freight Heat Map"
+          loading="lazy">
+        </iframe>
+      </div>
+
+      <!-- Quick ref panel -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+
+        <!-- Legend -->
+        <div style="background:#1a2233;border-radius:8px;padding:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--aqua);margin-bottom:8px">Reading the Map</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.8);line-height:1.6">
+            <div style="margin-bottom:4px">🔴 <strong>Dark/Red</strong> — High demand, strong rates. Send trucks here.</div>
+            <div style="margin-bottom:4px">🟡 <strong>Medium</strong> — Average activity. Negotiate hard.</div>
+            <div style="margin-bottom:8px">⬜ <strong>Light</strong> — Low demand. Avoid deadhead here.</div>
+            <div style="font-size:10px;color:var(--muted)">Use the equipment filter on the map to switch between Van, Reefer, and Flatbed.</div>
+          </div>
+        </div>
+
+        <!-- Dispatcher tips -->
+        <div style="background:#1a2233;border-radius:8px;padding:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#f97316;margin-bottom:8px">⚡ Dispatcher Rules</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.8);line-height:1.7">
+            <div>✅ Always check map before quoting a load</div>
+            <div>✅ Dark state = push for higher rate</div>
+            <div>✅ Light state = accept if rate covers cost</div>
+            <div>✅ Compare origin vs destination heat</div>
+            <div>✅ Use Analyze Load to verify every rate</div>
+          </div>
+        </div>
+
+        <!-- Link to full tools -->
+        <div style="background:#1a2233;border-radius:8px;padding:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--aqua);margin-bottom:8px">More Intel</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <a href="https://trulos.com/freight-rate-intelligence/" target="_blank" style="color:#60a5fa;font-size:11px;text-decoration:none">📈 State-to-State Lane Rates ↗</a>
+            <a href="https://trulos.com/freight-rates/" target="_blank" style="color:#60a5fa;font-size:11px;text-decoration:none">📊 Equipment Rate Trends ↗</a>
+            <a href="https://trulos.com/load-board/" target="_blank" style="color:#60a5fa;font-size:11px;text-decoration:none">🚛 Trulos Load Board ↗</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- LANE RATES VIEW -->
+  <div id="mktViewRates" style="display:none">
+    <div style="border-radius:8px;overflow:hidden;border:1px solid rgba(0,142,151,.2)">
+      <iframe
+        src="https://trulos.com/freight-rate-intelligence/"
+        style="width:100%;height:600px;border:none;background:#0a1628"
+        title="Trulos Lane Rates"
+        loading="lazy">
+      </iframe>
+    </div>
+  </div>
+
+  <!-- TOP LANES VIEW -->
+  <div id="mktViewLanes" style="display:none">
+    <div style="border-radius:8px;overflow:hidden;border:1px solid rgba(0,142,151,.2)">
+      <iframe
+        src="https://trulos.com/freight-rates/"
+        style="width:100%;height:600px;border:none;background:#0a1628"
+        title="Trulos Freight Rates"
+        loading="lazy">
+      </iframe>
+    </div>
+  </div>
+
+</div>
+</div><!-- /body -->
+</div><!-- /app -->
+
+<script>
+var stopCount=0;
+
+/* ─── STATE ─── */
+var A = {
+  drivers:[], selDriver:null, selTrailer:'dryvan',
+  stops:[], // [{type:'curLoc'|'pu'|'del', coords, label, state, zip}]
+  miles:0, deadMiles:0, loadedMiles:0,
+  diesel:3.847, hereKey:'OSnpV1lPma0S8uCSZAfVNZfjoDQSUrjI6v2Gshabhmc', eiaKey:'', owmKey:'', fredKey:'',
+  wxOrigin:null, wxDest:null, trulosData:null,
+  settings:{truckPmt:2200,insurance:1400,eld:180,maint:18,tires:8,monthMiles:10000,marginMult:1.35,freeDeadMi:40,deadCpm:35},
+  acTimers:{}
+};
+
+var TRAILERS = {
+  dryvan:   {label:'Dry Van',    mpgMod:0,    extraCpm:0,  reeferFuelCpm:0,  windSensitive:true},
+  reefer:   {label:'Reefer',     mpgMod:-0.8, extraCpm:4,  reeferFuelCpm:10, windSensitive:true},
+  flatbed:  {label:'Flatbed',    mpgMod:-0.3, extraCpm:5,  reeferFuelCpm:0,  windSensitive:false},
+  poweronly:{label:'Power Only', mpgMod:0,    extraCpm:0,  reeferFuelCpm:0,  windSensitive:false},
+  expedited:{label:'Expedited',  mpgMod:-0.5, extraCpm:8,  reeferFuelCpm:0,  windSensitive:true}
+};
+
+/* ─── CITY DB ─── */
+var CITIES=[
+  {z:'28202',c:'Charlotte',s:'NC',lat:35.2271,lng:-80.8431},{z:'27601',c:'Raleigh',s:'NC',lat:35.7796,lng:-78.6382},
+  {z:'27401',c:'Greensboro',s:'NC',lat:36.0726,lng:-79.7920},{z:'28401',c:'Wilmington',s:'NC',lat:34.2257,lng:-77.9447},
+  {z:'29201',c:'Columbia',s:'SC',lat:34.0007,lng:-81.0348},{z:'29401',c:'Charleston',s:'SC',lat:32.7765,lng:-79.9311},
+  {z:'29601',c:'Greenville',s:'SC',lat:34.8526,lng:-82.3940},{z:'30301',c:'Atlanta',s:'GA',lat:33.7490,lng:-84.3880},
+  {z:'31401',c:'Savannah',s:'GA',lat:32.0835,lng:-81.0998},{z:'33101',c:'Miami',s:'FL',lat:25.7617,lng:-80.1918},
+  {z:'32801',c:'Orlando',s:'FL',lat:28.5383,lng:-81.3792},{z:'33602',c:'Tampa',s:'FL',lat:27.9506,lng:-82.4572},
+  {z:'32210',c:'Jacksonville',s:'FL',lat:30.3322,lng:-81.6557},{z:'35203',c:'Birmingham',s:'AL',lat:33.5186,lng:-86.8104},
+  {z:'37201',c:'Nashville',s:'TN',lat:36.1627,lng:-86.7816},{z:'38101',c:'Memphis',s:'TN',lat:35.1495,lng:-90.0490},
+  {z:'70112',c:'New Orleans',s:'LA',lat:29.9511,lng:-90.0715},{z:'77001',c:'Houston',s:'TX',lat:29.7604,lng:-95.3698},
+  {z:'75201',c:'Dallas',s:'TX',lat:32.7767,lng:-96.7970},{z:'78201',c:'San Antonio',s:'TX',lat:29.4241,lng:-98.4936},
+  {z:'73101',c:'Oklahoma City',s:'OK',lat:35.4676,lng:-97.5164},{z:'64101',c:'Kansas City',s:'MO',lat:39.0997,lng:-94.5786},
+  {z:'63101',c:'St. Louis',s:'MO',lat:38.6270,lng:-90.1994},{z:'60601',c:'Chicago',s:'IL',lat:41.8781,lng:-87.6298},
+  {z:'46201',c:'Indianapolis',s:'IN',lat:39.7684,lng:-86.1581},{z:'43201',c:'Columbus',s:'OH',lat:39.9612,lng:-82.9988},
+  {z:'44101',c:'Cleveland',s:'OH',lat:41.4993,lng:-81.6944},{z:'48201',c:'Detroit',s:'MI',lat:42.3314,lng:-83.0458},
+  {z:'19101',c:'Philadelphia',s:'PA',lat:39.9526,lng:-75.1652},{z:'10001',c:'New York',s:'NY',lat:40.7128,lng:-74.0060},
+  {z:'02101',c:'Boston',s:'MA',lat:42.3601,lng:-71.0589},{z:'21201',c:'Baltimore',s:'MD',lat:39.2904,lng:-76.6122},
+  {z:'20001',c:'Washington',s:'DC',lat:38.9072,lng:-77.0369},{z:'23219',c:'Richmond',s:'VA',lat:37.5407,lng:-77.4360},
+  {z:'85001',c:'Phoenix',s:'AZ',lat:33.4484,lng:-112.0740},{z:'89101',c:'Las Vegas',s:'NV',lat:36.1699,lng:-115.1398},
+  {z:'90001',c:'Los Angeles',s:'CA',lat:34.0522,lng:-118.2437},{z:'94102',c:'San Francisco',s:'CA',lat:37.7749,lng:-122.4194},
+  {z:'98101',c:'Seattle',s:'WA',lat:47.6062,lng:-122.3321},{z:'97201',c:'Portland',s:'OR',lat:45.5051,lng:-122.6750},
+  {z:'80201',c:'Denver',s:'CO',lat:39.7392,lng:-104.9903},{z:'84101',c:'Salt Lake City',s:'UT',lat:40.7608,lng:-111.8910},
+  {z:'88240',c:'Hobbs',s:'NM',lat:32.7026,lng:-103.1360},{z:'87101',c:'Albuquerque',s:'NM',lat:35.0844,lng:-106.6504},
+  {z:'55401',c:'Minneapolis',s:'MN',lat:44.9778,lng:-93.2650},{z:'53201',c:'Milwaukee',s:'WI',lat:43.0389,lng:-87.9065},
+  {z:'72201',c:'Little Rock',s:'AR',lat:34.7465,lng:-92.2896},{z:'50301',c:'Des Moines',s:'IA',lat:41.5868,lng:-93.6250},
+  {z:'68102',c:'Omaha',s:'NE',lat:41.2565,lng:-95.9345},{z:'39201',c:'Jackson',s:'MS',lat:32.2988,lng:-90.1848},
+  {z:'36602',c:'Mobile',s:'AL',lat:30.6954,lng:-88.0399},{z:'67201',c:'Wichita',s:'KS',lat:37.6872,lng:-97.3301},
+  {z:'57101',c:'Sioux Falls',s:'SD',lat:43.5446,lng:-96.7311},{z:'58101',c:'Fargo',s:'ND',lat:46.8772,lng:-96.7898},
+  {z:'59101',c:'Billings',s:'MT',lat:45.7833,lng:-108.5007},{z:'82001',c:'Cheyenne',s:'WY',lat:41.1400,lng:-104.8202},
+  {z:'83701',c:'Boise',s:'ID',lat:43.6150,lng:-116.2023},{z:'66101',c:'Kansas City',s:'KS',lat:39.1142,lng:-94.6275}
+];
+
+/* ─── INIT ─── */
+(function(){
+  updateTime(); setInterval(updateTime,1000);
+  loadStorage(); renderChips(); renderProfiles(); loadSettings();
+  fetchEia(); fetchTrulos();
+  addStop('pu'); addStop('del'); // start with one pickup and one delivery
+})();
+
+function updateTime(){var e=document.getElementById('rpcTime');if(e)e.textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+function tg(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function ts(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function gv(id){return parseFloat((document.getElementById(id)||{}).value)||0;}
+
+function loadStorage(){
+  var d=tg('rpc_drivers');if(d)try{A.drivers=JSON.parse(d);}catch(e){}
+  ['here','eia','owm','fred'].forEach(function(k){
+    var v=tg('rpc_k_'+k);
+    if(v&&v.length>8){
+      A[k+'Key']=v;
+      var ids={here:'kHere',eia:'kEia',owm:'kOwm',fred:'kFred'};
+      var el=document.getElementById(ids[k]);if(el)el.value=v;
+      setKS(k,'ok');
+    }
+  });
+}
+function saveDrivers(){ts('rpc_drivers',JSON.stringify(A.drivers));}
+function saveKey(k){
+  var ids={here:'kHere',eia:'kEia',owm:'kOwm',fred:'kFred'};
+  var v=(document.getElementById(ids[k])||{}).value||'';
+  A[k+'Key']=v;
+  if(v.length>8){ts('rpc_k_'+k,v);setKS(k,'ok');if(k==='eia')fetchEia();}
+  else setKS(k,'no');
+}
+function setKS(k,state,extra){
+  var el=document.getElementById('ks-'+k);if(!el)return;
+  el.textContent=extra||(state==='ok'?'Connected':state==='fetch'?'Fetching...':'Not set');
+  el.className='ks '+(state==='ok'?'ks-ok':state==='fetch'?'ks-fetch':'ks-no');
+}
+function loadSettings(){
+  var keys=['truckPmt','insurance','eld','maint','tires','monthMiles','marginMult','freeDeadMi','deadCpm'];
+  var elMap={truckPmt:'sTruck',insurance:'sIns',eld:'sEld',maint:'sMaint',tires:'sTires',monthMiles:'sMonthMi',marginMult:'sMargin',freeDeadMi:'sFreeDeadMi',deadCpm:'sDeadCpm'};
+  keys.forEach(function(k){
+    var stored=tg('rpc_s_'+k),el=document.getElementById(elMap[k]);
+    if(stored&&el){el.value=stored;A.settings[k]=parseFloat(stored);}
+    else if(el)A.settings[k]=parseFloat(el.value)||A.settings[k];
+  });
+}
+function saveSetting(k,v){A.settings[k]=parseFloat(v)||0;ts('rpc_s_'+k,v);}
+
+/* ─── EIA ─── */
+function fetchEia(){
+  if(!A.eiaKey||A.eiaKey.length<8)return;
+  setKS('eia','fetch');
+  fetch('/.netlify/functions/eia-diesel')
+    .then(function(r){return r.json();}).then(function(d){
+      var rows=(d.response&&d.response.data)||[];
+      if(rows.length){A.diesel=parseFloat(rows[0].value);setKS('eia','ok','Live $'+A.diesel.toFixed(3));}
+    }).catch(function(){setKS('eia','no');});
+}
+
+/* ─── TRULOS ─── */
+function fetchTrulos(){
+  fetch('/.netlify/functions/trulos?file=state_rates_trends.json')
+    .then(function(r){return r.json();}).then(function(d){A.trulosData=d;})
+    .catch(function(){});
+}
+function getTrulosRate(origState,destState,trailerType){
+  if(!A.trulosData)return null;
+  var eq={dryvan:'van',reefer:'reefer',flatbed:'flatbed',poweronly:'van',expedited:'van'}[trailerType]||'van';
+  try{
+    var lanes=A.trulosData[eq]||A.trulosData.van||[];
+    var match=lanes.find(function(l){return(l.origin_state===origState||l.orig===origState)&&(l.dest_state===destState||l.dest===destState);});
+    if(!match){
+      var ol=lanes.filter(function(l){return l.origin_state===origState||l.orig===origState;});
+      if(!ol.length)return null;
+      var avg=ol.reduce(function(s,l){return s+parseFloat(l.avg_rate_rpm||l.rate||0);},0)/ol.length;
+      return{rpm:avg.toFixed(2),trend:'flat',source:'origin avg',confidence:'low'};
+    }
+    return{rpm:parseFloat(match.avg_rate_rpm||match.rate||0).toFixed(2),trend:match.trend_direction||match.trend||'flat',low:parseFloat(match.low_rate||0).toFixed(2),high:parseFloat(match.high_rate||0).toFixed(2),source:'Trulos lane data',confidence:'high'};
+  }catch(e){return null;}
+}
+
+/* ─── WEATHER HAZARD ─── */
+function wxHazard(wx){
+  if(!wx)return{tier:0,reasons:[],fuelPenalty:0,opCpm:0};
+  var code=wx.weatherId||800,wind=wx.windSpeed||0,temp=wx.temp||70;
+  var tier=0,reasons=[];
+  if(code>=600&&code<=602){tier=Math.max(tier,2);reasons.push('Snow at '+wx.city);}
+  if(code===602||code===622){tier=Math.max(tier,3);reasons.push('Heavy snow/blizzard at '+wx.city);}
+  if(code>=611&&code<=616){tier=Math.max(tier,2);reasons.push('Sleet/freezing rain at '+wx.city);}
+  if(code===511){tier=Math.max(tier,3);reasons.push('Freezing rain (black ice) at '+wx.city);}
+  if(code>=200&&code<=232){tier=Math.max(tier,1);reasons.push('Thunderstorm at '+wx.city);}
+  if(code===502||code===503||code===504){tier=Math.max(tier,1);reasons.push('Heavy rain at '+wx.city);}
+  if(code===522||code===531){tier=Math.max(tier,2);reasons.push('Intense rain at '+wx.city);}
+  if(code===741){tier=Math.max(tier,1);reasons.push('Fog at '+wx.city);}
+  if(code===781){tier=Math.max(tier,3);reasons.push('Tornado at '+wx.city);}
+  if(wind>=50){tier=Math.max(tier,3);reasons.push('Severe wind '+Math.round(wind)+'mph at '+wx.city);}
+  else if(wind>=35){tier=Math.max(tier,2);reasons.push('High wind '+Math.round(wind)+'mph at '+wx.city);}
+  else if(wind>=25){tier=Math.max(tier,1);reasons.push('Elevated wind '+Math.round(wind)+'mph');}
+  if(temp>=100&&A.selTrailer==='reefer')reasons.push('Extreme heat — reefer working harder');
+  return{tier,reasons,fuelPenalty:[0,.04,.08,.15][tier],opCpm:[0,3,8,18][tier]};
+}
+function wxTierLabel(t){return['Clear','Minor Hazard','Moderate Hazard','SEVERE HAZARD'][t];}
+function wxTierClass(t){return['hz0','hz1','hz2','hz3'][t];}
+
+/* ─── TABS / TRAILER ─── */
+function sw(t){
+  document.querySelectorAll('.tc').forEach(function(e){e.classList.remove('active');});
+  document.querySelectorAll('.nt').forEach(function(e){e.classList.remove('active');});
+  document.getElementById('tab-'+t).classList.add('active');
+  ['dispatch','drivers','settings','market'].forEach(function(name,i){if(name===t)document.querySelectorAll('.nt')[i].classList.add('active');});
+  if(t==='market') renderMarket();
+}
+function selT(el){
+  document.querySelectorAll('.tbtn').forEach(function(b){b.classList.remove('sel');});
+  el.classList.add('sel'); A.selTrailer=el.dataset.type;
+  // Show/hide reefer temp row
+  var reeferRow=document.getElementById('reeferTempRow');
+  if(reeferRow) reeferRow.style.display=el.dataset.type==='reefer'?'block':'none';
+  onInput();
+}
+function selTrailerByType(type){
+  document.querySelectorAll('.tbtn').forEach(function(b){b.classList.toggle('sel',b.dataset.type===type);});
+  A.selTrailer=type;
+  var reeferRow=document.getElementById('reeferTempRow');
+  if(reeferRow) reeferRow.style.display=type==='reefer'?'block':'none';
+}
+function selReeferTier(btn){
+  document.querySelectorAll('.temp-tier-btn').forEach(function(b){
+    b.style.background='rgba(255,255,255,.04)';
+    b.style.border='1px solid rgba(255,255,255,.1)';
+  });
+  btn.style.background='rgba(0,142,151,.15)';
+  btn.style.border='1px solid rgba(0,142,151,.4)';
+  A.reeferTier=btn.dataset.tier;
+  // Set default set point for tier
+  var defaults={fresh:34,chilled:29,frozen:-10};
+  var sp=document.getElementById('reeferSetPoint');
+  if(sp) sp.value=defaults[A.reeferTier];
+  A.reeferSetPoint=defaults[A.reeferTier];
+  updateReeferLabel();
+  onInput();
+}
+function onReeferTempChange(){
+  var sp=parseFloat(document.getElementById('reeferSetPoint').value)||34;
+  A.reeferSetPoint=sp;
+  // Auto-select tier based on set point
+  if(sp<=27) A.reeferTier='frozen';
+  else if(sp<=33) A.reeferTier='chilled';
+  else A.reeferTier='fresh';
+  document.querySelectorAll('.temp-tier-btn').forEach(function(b){
+    var active=b.dataset.tier===A.reeferTier;
+    b.style.background=active?'rgba(0,142,151,.15)':'rgba(255,255,255,.04)';
+    b.style.border=active?'1px solid rgba(0,142,151,.4)':'1px solid rgba(255,255,255,.1)';
+  });
+  updateReeferLabel();
+  onInput();
+}
+function updateReeferLabel(){
+  var el=document.getElementById('reeferTempLabel');
+  if(!el) return;
+  var sp=A.reeferSetPoint||34;
+  if(sp<=27){
+    el.style.color='#a78bfa';
+    el.textContent='Frozen — unit runs hardest (+premium cost)';
+  } else if(sp<=33){
+    el.style.color='#60a5fa';
+    el.textContent='Chilled/Meat — moderate unit load (+standard premium)';
+  } else {
+    el.style.color='#4ade80';
+    el.textContent='Fresh/Produce — standard reefer rate';
+  }
+}
+
+/* ─── DRIVER CHIPS ─── */
+function renderChips(){
+  var el=document.getElementById('driverChips');
+  if(!A.drivers.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:6px">No drivers yet — go to Driver Profiles.</div>';return;}
+  el.innerHTML=A.drivers.map(function(d){
+    var ini=d.name.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    var pay=d.payType==='cpm'?d.cpm+'¢/mi':d.payType==='pct'?d.pct+'%':'$'+d.flat;
+    return '<div class="dchip'+(A.selDriver&&A.selDriver.id===d.id?' sel':'')+'" onclick="selDriver(\''+d.id+'\')">'
+      +'<div class="dav">'+ini+'</div><div class="dname">'+d.name+'</div>'
+      +'<div class="dtruck">'+d.truck+'</div><div class="dpay">'+pay+'</div></div>';
+  }).join('');
+}
+function selDriver(id){
+  A.selDriver=A.drivers.find(function(d){return d.id===id;})||null;
+  renderChips();
+  var badge=document.getElementById('driverBadge');
+  if(!A.selDriver){badge.style.display='none';return;}
+  var d=A.selDriver;
+  var pay=d.payType==='cpm'?d.cpm+'¢/mi':d.payType==='pct'?d.pct+'% of load':'$'+d.flat+'/load';
+  badge.style.display='flex';
+  badge.innerHTML='<div class="dbi"><span class="dbl">Driver: </span><span class="dbv">'+d.name+'</span></div>'
+    +'<div class="dbi"><span class="dbl">Unit: </span><span class="dbv">'+d.truck+'</span></div>'
+    +'<div class="dbi"><span class="dbl">Pay: </span><span class="dbv">'+pay+'</span></div>'
+    +'<div class="dbi"><span class="dbl">MPG: </span><span class="dbv">'+d.mpg+'</span></div>';
+  if(d.equip) selTrailerByType(d.equip);
+  onInput();
+}
+
+/* ─── STOPS BUILDER ─── */
+var stopCount=0;
+
+function addStop(type){
+  var id='stop_'+(++stopCount);
+  var containerId=type==='pu'?'puStops':'delStops';
+  var blockClass=type==='pu'?'stop-block-pu':'stop-block-del';
+  var labelClass=type==='pu'?'stop-lbl-pu':'stop-lbl-del';
+  var icon=type==='pu'?'🟢':'🔴';
+  var puList=document.getElementById('puStops').querySelectorAll('.stop-block').length;
+  var delList=document.getElementById('delStops').querySelectorAll('.stop-block').length;
+  var labelText=type==='pu'
+    ?(puList===0?'Pickup':'Pickup Stop '+(puList+1))
+    :(delList===0?'Delivery':'Delivery Stop '+(delList+1));
+
+  var block=document.createElement('div');
+  block.className='stop-block '+blockClass;
+  block.dataset.stopId=id; block.dataset.stopType=type;
+  block.innerHTML='<div class="stop-block-header">'+
+    '<span class="stop-label '+labelClass+'">'+icon+' '+labelText+'</span>'+
+    '<button class="stop-remove" onclick="removeStop(this)" title="Remove stop">✕</button>'+
+    '</div>'+
+    '<div class="stop-input-wrap">'+
+    '<input class="stop-input" id="inp_'+id+'" type="text" placeholder="ZIP or City, State" oninput="acInput(this,\'ac_'+id+'\',\''+id+'\')" autocomplete="off"/>'+
+    '<div class="acdd" id="ac_'+id+'"></div>'+
+    '</div>';
+  document.getElementById(containerId).appendChild(block);
+  recalcStopLabels();
+}
+
+function removeStop(btn){
+  var block=btn.closest('.stop-block');
+  block.remove();
+  recalcStopLabels();
+  recalcRoute();
+}
+
+function recalcStopLabels(){
+  document.getElementById('puStops').querySelectorAll('.stop-block').forEach(function(block,i){
+    var lbl=block.querySelector('.stop-label');
+    if(lbl) lbl.textContent=(i===0?'🟢 Pickup':'🟢 Pickup Stop '+(i+1));
+  });
+  document.getElementById('delStops').querySelectorAll('.stop-block').forEach(function(block,i){
+    var lbl=block.querySelector('.stop-label');
+    if(lbl) lbl.textContent=(i===0?'🔴 Delivery':'🔴 Delivery Stop '+(i+1));
+  });
+}
+
+/* ─── AUTOCOMPLETE ─── */
+function hereAC(q,cb){
+  var isZip=/^\d{3,5}$/.test(q);
+  if(A.hereKey&&A.hereKey.length>8){
+    // Direct HERE call — same as driver pay dashboard
+    var url=isZip
+      ?'https://geocode.search.hereapi.com/v1/geocode?q='+encodeURIComponent(q)+'&in=countryCode:USA&lang=en-US&limit=6&apiKey='+A.hereKey
+      :'https://autocomplete.search.hereapi.com/v1/autocomplete?q='+encodeURIComponent(q)+'&in=countryCode:USA&resultTypes=city,postalCode&limit=8&lang=en-US&apiKey='+A.hereKey;
+    fetch(url).then(function(r){return r.json();}).then(function(d){
+      var items=(d.items||[]).slice(0,8).map(function(i){
+        var a=i.address||{},p=i.position||{};
+        return{z:a.postalCode||'',c:a.city||a.county||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};
+      }).filter(function(i){return i.lat&&i.lng;});
+      cb(items);
+    }).catch(function(){cb([]);});
+  } else {
+    // Fall back to Netlify proxy function
+    var url2=isZip
+      ?'/.netlify/functions/here-ac?q='+encodeURIComponent(q+' USA')
+      :'/.netlify/functions/here-ac?q='+encodeURIComponent(q);
+    fetch(url2).then(function(r){return r.json();}).then(function(d){
+      var items=(d.items||[]).slice(0,8).map(function(i){
+        var a=i.address||{},p=i.position||{};
+        return{z:a.postalCode||'',c:a.city||a.county||'',s:a.stateCode||'',lat:p.lat,lng:p.lng};
+      }).filter(function(i){return i.lat&&i.lng;});
+      cb(items);
+    }).catch(function(){cb([]);});
+  }
+}
+function acInput(input,acId,stopId){
+  var q=input.value.trim(),dd=document.getElementById(acId);
+  if(A.acTimers[stopId])clearTimeout(A.acTimers[stopId]);
+  if(q.length<2){dd.style.display='none';return;}
+  A.acTimers[stopId]=setTimeout(function(){
+    hereAC(q,function(items){
+      if(items.length) showAC(items,dd,input,stopId);
+      else fbAC(q,dd,input,stopId);
+    });
+  },300);
+}
+function fbAC(q,dd,input,stopId){
+  var ql=q.toLowerCase();
+  showAC(CITIES.filter(function(c){return c.z.startsWith(ql)||c.c.toLowerCase().includes(ql)||(c.c+', '+c.s).toLowerCase().includes(ql);}).slice(0,7),dd,input,stopId);
+}
+function showAC(items,dd,input,stopId){
+  if(!items.length){dd.style.display='none';return;}
+  dd.innerHTML=items.map(function(it){
+    var zip=it.z||'';
+    var city=it.c+(it.s?', '+it.s:'');
+    var enc=JSON.stringify({z:it.z,c:it.c,s:it.s,lat:it.lat,lng:it.lng,label:it.c+(it.s?', '+it.s:'')}).replace(/"/g,"'");
+    return '<div class="aci" onclick="selStop(\''+stopId+'\',\''+dd.id+'\',\''+input.id+'\',this.dataset.d)" data-d="'+enc+'">'
+      +(zip?'<span class="aci-zip">'+zip+'</span>':'')
+      +'<span class="aci-city">'+city+'</span>'
+      +'</div>';
+  }).join('');
+  // Position absolute inside stop-input-wrap, which is position:relative
+  dd.style.cssText='position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:9999;background:#1a2e40;border:1px solid #008E97;border-radius:6px;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.7);display:block';
+}
+function selStop(stopId,ddId,inputId,dataStr){
+  var data=JSON.parse(dataStr.replace(/'/g,'"'));
+  document.getElementById(inputId).value=(data.z?data.z+' — ':'')+data.label;
+  document.getElementById(ddId).style.display='none';
+
+  // Store coords on the row
+  var row=document.querySelector('[data-stop-id="'+stopId+'"]');
+  if(row){
+    row.dataset.lat=data.lat;row.dataset.lng=data.lng;
+    row.dataset.label=data.label;row.dataset.state=data.s||'';row.dataset.zip=data.z||'';
+  } else if(stopId==='curLoc'){
+    // current location input
+    A.curLocCoords={lat:parseFloat(data.lat),lng:parseFloat(data.lng),label:data.label,state:data.s||''};
+  }
+  recalcRoute();
+}
+// Close ALL dropdowns when clicking outside any stop input
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.stop-input-wrap')&&!e.target.closest('.fac'))
+    document.querySelectorAll('.acdd').forEach(function(d){d.style.display='none';});
+});
+// Close all OTHER dropdowns when focusing any stop input
+document.addEventListener('focusin',function(e){
+  var wrap=e.target.closest('.stop-input-wrap');
+  if(wrap){
+    var myDD=wrap.querySelector('.acdd');
+    document.querySelectorAll('.acdd').forEach(function(d){
+      if(d!==myDD) d.style.display='none';
+    });
+  }
+});
+
+// Special handler for current location field
+function acInput_curLoc(input){
+  acInput(input,'curLocAC','curLoc');
+}
+document.getElementById('curLocInput').oninput=function(){acInput(this,'curLocAC','curLoc');};
+document.getElementById('curLocAC').id='curLocAC';
+// Wire curLoc AC selection
+function selLoc_cur(el){
+  var data=JSON.parse(el.dataset.d.replace(/'/g,'"'));
+  document.getElementById('curLocInput').value=(data.z?data.z+' — ':'')+data.label;
+  document.getElementById('curLocAC').style.display='none';
+  A.curLocCoords={lat:parseFloat(data.lat),lng:parseFloat(data.lng),label:data.label,state:data.s||''};
+  recalcRoute();
+}
+// Override acInput for curLoc to use special sel function
+(function(){
+  document.getElementById('curLocInput').oninput=function(){
+    var q=this.value.trim(),dd=document.getElementById('curLocAC');
+    if(A.acTimers['curLoc'])clearTimeout(A.acTimers['curLoc']);
+    if(q.length<2){dd.style.display='none';return;}
+    A.acTimers['curLoc']=setTimeout(function(){
+      hereAC(q,function(items){
+        if(items.length) showCurAC(items,dd);
+        else{
+          var ql=q.toLowerCase();
+          showCurAC(CITIES.filter(function(c){return c.z.startsWith(ql)||c.c.toLowerCase().includes(ql)||(c.c+', '+c.s).toLowerCase().includes(ql);}).slice(0,7),dd);
+        }
+      });
+    },300);
+  };
+  function showCurAC(items,dd){
+    if(!items.length){dd.style.display='none';return;}
+    dd.innerHTML=items.map(function(it){
+      var lbl=(it.z?it.z+' — ':'')+it.c+(it.s?', '+it.s:'');
+      var enc=JSON.stringify({z:it.z,c:it.c,s:it.s,lat:it.lat,lng:it.lng,label:it.c+(it.s?', '+it.s:'')}).replace(/"/g,"'");
+      return '<div class="aci" onclick="selCurLoc(this)" data-d="'+enc+'">'+lbl+'</div>';
+    }).join('');
+    dd.style.display='block';
+  }
+  window.selCurLoc=function(el){
+    var data=JSON.parse(el.dataset.d.replace(/'/g,'"'));
+    document.getElementById('curLocInput').value=(data.z?data.z+' — ':'')+data.label;
+    document.getElementById('curLocAC').style.display='none';
+    A.curLocCoords={lat:parseFloat(data.lat),lng:parseFloat(data.lng),label:data.label,state:data.s||''};
+    recalcRoute();
+  };
+})();
+
+/* ─── ROUTE CALCULATION ─── */
+function getStopCoords(type){
+  var containerId=type==='pu'?'puStops':'delStops';
+  var rows=document.getElementById(containerId).querySelectorAll('.stop-block');
+  var result=[];
+  rows.forEach(function(row){
+    if(row.dataset.lat&&row.dataset.lng){
+      result.push({lat:parseFloat(row.dataset.lat),lng:parseFloat(row.dataset.lng),label:row.dataset.label||'',state:row.dataset.state||''});
+    }
+  });
+  return result;
+}
+
+function haversine(lat1,lng1,lat2,lng2){
+  var R=3958.8,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function calcSegmentMiles(from,to,callback){
+  if(A.hereKey&&A.hereKey.length>8){
+    // Direct HERE routing — same as driver pay dashboard
+    var url='https://router.hereapi.com/v8/routes?transportMode=truck&origin='+from.lat+','+from.lng+'&destination='+to.lat+','+to.lng+'&return=summary&apiKey='+A.hereKey;
+    fetch(url)
+      .then(function(r){return r.json();}).then(function(d){
+        var sec=d.routes&&d.routes[0]&&d.routes[0].sections&&d.routes[0].sections[0];
+        if(sec&&sec.summary&&sec.summary.length) callback(Math.round(sec.summary.length*0.000621371));
+        else callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));
+      }).catch(function(){callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));});
+  } else {
+    // Fall back to Netlify proxy
+    fetch('/.netlify/functions/here-route?olat='+from.lat+'&olng='+from.lng+'&dlat='+to.lat+'&dlng='+to.lng)
+      .then(function(r){return r.json();}).then(function(d){
+        var sec=d.routes&&d.routes[0]&&d.routes[0].sections&&d.routes[0].sections[0];
+        if(sec&&sec.summary&&sec.summary.length) callback(Math.round(sec.summary.length*0.000621371));
+        else callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));
+      }).catch(function(){callback(Math.round(haversine(from.lat,from.lng,to.lat,to.lng)*1.18));});
+  }
+}
+
+function recalcRoute(){
+  var puCoords=getStopCoords('pu');
+  var delCoords=getStopCoords('del');
+  if(!puCoords.length&&!delCoords.length){updateRouteSummary(0,0,0);return;}
+
+  // Build segment chain: curLoc → first PU → ...PUs → first Del → ...Dels
+  var chain=[];
+  if(A.curLocCoords) chain.push({coords:A.curLocCoords,type:'cur'});
+  puCoords.forEach(function(c){chain.push({coords:c,type:'pu'});});
+  delCoords.forEach(function(c){chain.push({coords:c,type:'del'});});
+
+  if(chain.length<2){updateRouteSummary(0,0,0);return;}
+
+  // Calculate all segments sequentially
+  var segments=[];
+  var idx=0;
+  function nextSeg(){
+    if(idx>=chain.length-1){
+      // All segments done — sum up
+      var deadMiles=0,loadedMiles=0;
+      segments.forEach(function(seg){
+        if(seg.fromType==='cur'||seg.toType==='pu'&&seg.fromType==='cur') deadMiles+=seg.miles;
+        else if(seg.fromType==='pu'&&seg.toType==='pu') loadedMiles+=seg.miles; // multi-PU = loaded
+        else if(seg.fromType==='pu'&&seg.toType==='del') loadedMiles+=seg.miles;
+        else if(seg.fromType==='del'&&seg.toType==='del') loadedMiles+=seg.miles;
+        else loadedMiles+=seg.miles;
+      });
+      // If curLoc → first PU, that's deadhead
+      if(chain[0].type==='cur'&&chain[1]&&chain[1].type==='pu'){
+        deadMiles=segments[0]?segments[0].miles:0;
+        loadedMiles=segments.slice(1).reduce(function(s,seg){return s+seg.miles;},0);
+      }
+      A.miles=loadedMiles+deadMiles;
+      A.deadMiles=deadMiles;
+      A.loadedMiles=loadedMiles;
+      updateRouteSummary(loadedMiles,deadMiles,chain);
+      onInput();
+      return;
+    }
+    var from=chain[idx].coords,to=chain[idx+1].coords;
+    calcSegmentMiles(from,to,function(mi){
+      segments.push({miles:mi,fromType:chain[idx].type,toType:chain[idx+1].type,fromLabel:from.label,toLabel:to.label});
+      idx++;nextSeg();
+    });
+  }
+  nextSeg();
+}
+
+function updateRouteSummary(loadedMiles,deadMiles,chain){
+  var rs=document.getElementById('routeSummary');
+  if(!loadedMiles&&!deadMiles){rs.style.display='none';return;}
+  rs.style.display='flex';
+  var s=A.settings;
+  var isFreeDead=deadMiles<=s.freeDeadMi;
+  var deadBadge=deadMiles===0?''
+    :(isFreeDead?'<span class="dead-badge dead-free">'+deadMiles+' mi free deadhead</span>'
+      :'<span class="dead-badge dead-paid">'+deadMiles+' mi deadhead — driver paid '+s.deadCpm+'¢/mi</span>');
+  var estMiles=A.hereKey&&A.hereKey.length>8?'HERE truck routing':'estimated';
+  rs.innerHTML='<div class="rs-item"><div class="rs-lbl">Loaded Miles</div><div class="rs-val">'+loadedMiles.toLocaleString()+' mi</div></div>'
+    +(deadMiles>0?'<div class="rs-divider">·</div><div class="rs-item"><div class="rs-lbl">Deadhead</div><div class="rs-val">'+deadBadge+'</div></div>':'')
+    +'<div class="rs-divider">·</div><div class="rs-item"><div class="rs-lbl">Total</div><div class="rs-val">'+(loadedMiles+deadMiles).toLocaleString()+' mi</div></div>'
+    +'<div style="flex:1;text-align:right;font-size:10px;color:var(--dim)">'+estMiles+'</div>';
+}
+
+function onInput(){
+  var rate=gv('fRate'),miles=A.loadedMiles||A.miles;
+  if(rate>0&&miles>0){
+    quickRender(rate,miles);
+    renderLivePreview(rate,miles);
+  }
+}
+
+function renderLivePreview(rate,miles){
+  var r=computeAll(rate,miles);
+  var lp=document.getElementById('livePreview');
+  lp.style.display='block';
+  var gc=r.gapTotal>=0?'#4ade80':r.gapTotal>=-300?'#facc15':'#f87171';
+  var gs=r.gapTotal>=0?'+':'';
+  var barPct=Math.min(100,Math.max(2,(rate/Math.max(1,r.suggestedTotal))*100));
+  var bePct=Math.min(100,Math.round((r.totalAllIn/Math.max(1,r.suggestedTotal))*100));
+  var barColor=rate>=r.suggestedTotal?'#22c55e':rate>=r.suggestedTotal*0.85?'#facc15':'#ef4444';
+
+  var gapMsg='';
+  if(r.signal==='TAKE IT') gapMsg='<span style="color:#4ade80">✅ Offer covers your floor. You have $'+r.gapTotal.toLocaleString()+' cushion above suggested rate.</span>';
+  else if(r.signal==='NEGOTIATE') gapMsg='<span style="color:#facc15">⚠️ Counter at <strong>$'+r.suggestedTotal.toLocaleString()+'</strong> ($'+r.suggestedRpm+'/mi) — your floor after all costs + margin.</span>';
+  else gapMsg='<span style="color:#f87171">🚫 Need $'+Math.abs(r.gapTotal).toLocaleString()+' more. Minimum acceptable: <strong>$'+r.suggestedTotal.toLocaleString()+'</strong>.</span>';
+
+  var weightNote='';
+  var wt=gv('fWeight')||42000;
+  if(wt>0){
+    var pen=Math.min(18,Math.round(Math.max(0,(wt-20000)/10000*3.5)));
+    if(pen>0) weightNote='<div style="font-size:10px;color:#fb923c;margin-top:4px">⚖️ '+wt.toLocaleString()+' lbs — weight reduces effective MPG by ~'+pen+'% ('+r.effMpg+' MPG effective)</div>';
+  }
+
+  lp.innerHTML='<div class="live-preview">'
+    +'<div class="lp-header">Live Rate Analysis</div>'
+    +'<div class="lp-signal" style="border-color:'+r.sb+';background:'+r.sbg+';flex-wrap:wrap">'
+    +'<div style="flex:1"><div class="lp-word" style="color:'+r.sc+'">'+r.signal+'</div>'
+    +'<div class="lp-pct" style="color:'+r.sc+'">Offer is '+r.offerPct+'% of suggested · TLS '+r.TLS+'/100</div>'
+    +(r.hz.tier>0?'<div style="font-size:11px;color:#fb923c;margin-top:3px">⚠️ Hazard Tier '+r.hz.tier+' — $'+Math.round(r.hazardOpCost+r.hazardDrvPremium)+' added to cost</div>':'')
+    +weightNote+'</div>'
+    +'</div>'
+    +'<div class="lp-cols">'
+    +'<div class="lp-col" style="border:2px solid rgba(0,142,151,.35)">'
+    +'<div class="lp-col-title" style="color:var(--aqua)">RPC Suggested</div>'
+    +'<div class="lp-col-big" style="color:#fff">$'+r.suggestedTotal.toLocaleString()+'</div>'
+    +'<div class="lp-col-rpm" style="color:var(--aqua)">$'+r.suggestedRpm+'/mi</div>'
+    +'</div>'
+    +'<div class="lp-col" style="border:2px solid '+r.sb+'">'
+    +'<div class="lp-col-title" style="color:'+r.sc+'">Broker Offered</div>'
+    +'<div class="lp-col-big" style="color:'+r.sc+'">$'+rate.toLocaleString()+'</div>'
+    +'<div class="lp-col-rpm" style="color:'+r.sc+'">$'+r.grossRpm+'/mi</div>'
+    +'</div>'
+    +'<div class="lp-col">'
+    +'<div class="lp-col-title" style="color:'+gc+'">Gap</div>'
+    +'<div class="lp-col-big" style="color:'+gc+'">'+gs+'$'+Math.abs(r.gapTotal).toLocaleString()+'</div>'
+    +'<div class="lp-col-rpm" style="color:'+gc+'">'+gs+'$'+Math.abs(parseFloat(r.gapRpm)).toFixed(2)+'/mi</div>'
+    +'</div></div>'
+    +'<div class="lp-bar-wrap">'
+    +'<div class="lp-bar-be" style="width:'+bePct+'%"></div>'
+    +'<div class="lp-bar-offer" style="width:'+barPct+'%;background:'+barColor+'"></div>'
+    +'</div>'
+    +'<div class="lp-bar-labels"><span>$0</span><span>Break-even $'+Math.round(r.totalAllIn).toLocaleString()+'</span><span>Suggested $'+r.suggestedTotal.toLocaleString()+'</span></div>'
+    +'<div class="lp-gap-note" style="background:'+r.sbg+';border:1px solid '+r.sb+'">'+gapMsg+'</div>'
+    +'</div>';
+}
+
+/* ─── COST + TLS FORMULA ─── */
+function computeAll(rate,loadedMiles){
+  var d=A.selDriver,t=TRAILERS[A.selTrailer]||TRAILERS.dryvan,s=A.settings;
+  var deadMiles=A.deadMiles||0;
+  var totalMiles=loadedMiles+deadMiles;
+  var diesel=A.diesel;
+  var baseMpg=d?parseFloat(d.mpg):6.5;
+
+  // Weather
+  var hz0=wxHazard(A.wxOrigin),hz1=wxHazard(A.wxDest);
+  var hz={tier:Math.max(hz0.tier,hz1.tier),reasons:[].concat(hz0.reasons,hz1.reasons),fuelPenalty:Math.max(hz0.fuelPenalty,hz1.fuelPenalty),opCpm:Math.max(hz0.opCpm,hz1.opCpm)};
+
+  // Wind MPG penalty
+  var windFactor=1.0;
+  if(t.windSensitive){
+    var maxWind=Math.max(A.wxOrigin?A.wxOrigin.windSpeed:0,A.wxDest?A.wxDest.windSpeed:0);
+    if(maxWind>=50) windFactor=0.80;
+    else if(maxWind>=35) windFactor=0.85;
+  }
+
+  // Reefer fuel penalty based on LOAD SET POINT temperature (not ambient weather)
+  // Physics: reefer units burn ~0.5-1.5 gal/hr depending on delta between set point and ambient
+  // Frozen (-20 to 27°F): unit runs near max capacity — highest fuel burn
+  // Chilled (28-33°F): moderate unit load
+  // Fresh (34°F+): lightest unit load, standard rate
+  var reeferBonus=0;
+  if(A.selTrailer==='reefer'){
+    var setPoint=A.reeferSetPoint!=null?A.reeferSetPoint:34;
+    var tier=A.reeferTier||'fresh';
+    if(tier==='frozen'||setPoint<=27){
+      reeferBonus=14; // Frozen: ~+14¢/mi on top of base reeferFuelCpm
+    } else if(tier==='chilled'||setPoint<=33){
+      reeferBonus=7;  // Chilled: ~+7¢/mi
+    } else {
+      reeferBonus=0;  // Fresh: standard rate
+    }
+    // Additional ambient heat penalty (hot day = unit works harder to maintain frozen)
+    var ambientTemp=Math.max(A.wxOrigin?A.wxOrigin.temp:70, A.wxDest?A.wxDest.temp:70);
+    if(ambientTemp>=90&&setPoint<=33) reeferBonus+=4; // Hot day + cold load = extra strain
+  }
+
+  // WEIGHT-BASED FUEL PENALTY
+  // Physics basis: EPA/ATRI data shows each 10,000 lbs above 20,000 lbs tare
+  // reduces MPG roughly 3-4%. Full 80k gross vs 20k tare = ~18% worse fuel economy.
+  // Formula: MPG penalty = ((weight - 20000) / 10000) * 0.035 capped at 0.18
+  // Empty tare ~20,000 lbs. If no weight entered we assume 42,000 lbs (average load).
+  var loadWeight=gv('fWeight')||42000;
+  var weightPenalty=0;
+  if(loadWeight>20000){
+    weightPenalty=Math.min(0.18,((loadWeight-20000)/10000)*0.035);
+  }
+  var effMpg=Math.max(2,(baseMpg+t.mpgMod)*windFactor*(1-hz.fuelPenalty)*(1-weightPenalty));
+
+  // DRIVER PAY
+  // Rule: driver always paid on loaded miles only
+  // Deadhead: FREE if deadMiles <= freeDeadMi threshold, else paid at deadCpm
+  var driverLoadedPay=0;
+  if(d){
+    if(d.payType==='cpm') driverLoadedPay=loadedMiles*(parseFloat(d.cpm)/100);
+    else if(d.payType==='pct') driverLoadedPay=rate*(parseFloat(d.pct)/100);
+    else driverLoadedPay=parseFloat(d.flat)||0;
+  } else driverLoadedPay=loadedMiles*0.55;
+
+  var driverDeadPay=deadMiles>s.freeDeadMi?deadMiles*(s.deadCpm/100):0;
+  var driverCost=driverLoadedPay+driverDeadPay;
+
+  // FUEL
+  var truckFuel=(totalMiles/effMpg)*diesel;
+  var reeferFuel=A.selTrailer==='reefer'?loadedMiles*((t.reeferFuelCpm+reeferBonus)/100):0;
+
+  // VARIABLE
+  var maintCost=totalMiles*(s.maint/100);
+  var tiresCost=totalMiles*(s.tires/100);
+  var trailerExtra=loadedMiles*(t.extraCpm/100);
+
+  // HAZARD
+  var hazardOpCost=hz.tier>0?loadedMiles*(hz.opCpm/100):0;
+  var hazardDrvPremium=hz.tier>=2?loadedMiles*(0.15):0;
+
+  var totalVariable=truckFuel+reeferFuel+driverCost+maintCost+tiresCost+trailerExtra+hazardOpCost+hazardDrvPremium;
+
+  // FIXED
+  var fixedPerMile=(s.truckPmt+s.insurance+s.eld)/s.monthMiles;
+  var fixedAlloc=totalMiles*fixedPerMile;
+
+  // NET
+  var totalAllIn=totalVariable+fixedAlloc;
+  var netRev=rate-totalAllIn;
+  var grossRpm=loadedMiles>0?rate/loadedMiles:0;
+  var netRpm=loadedMiles>0?netRev/loadedMiles:0;
+
+  // SUGGESTED RATE
+  var suggestedTotal=Math.round(totalAllIn*s.marginMult);
+  var suggestedRpm=loadedMiles>0?suggestedTotal/loadedMiles:0;
+  var gapTotal=rate-suggestedTotal;
+  var gapRpm=grossRpm-suggestedRpm;
+  var offerVsSugg=suggestedTotal>0?rate/suggestedTotal:1;
+
+  // TLS
+  var c1=Math.max(0,Math.min(100,(netRev/Math.max(1,rate))*200));
+  var c2=Math.max(0,Math.min(100,((rate-totalVariable)/Math.max(1,fixedAlloc)/2)*100));
+  var util=totalMiles>0?loadedMiles/totalMiles:1;
+  var c3=Math.max(0,Math.min(100,Math.pow(util,1.4)*100));
+  var c4=Math.max(0,Math.min(100,(netRev/(Math.max(1,totalMiles)/55)/250)*100));
+  var c5=50+(diesel<4?10:0)+(diesel<3.8?10:0);
+  var wxPen=[0,3,8,15][hz.tier];
+  var TLS=Math.max(0,Math.min(100,(c1*.35)+(c2*.25)+(c3*.20)+(c4*.15)+(c5*.05)-wxPen));
+
+  // SIGNAL based on offer vs suggested
+  var signal,sc,sb,sbg;
+  if(offerVsSugg>=1.0){signal='TAKE IT';sc='#22c55e';sb='#22c55e';sbg='rgba(34,197,94,.07)';}
+  else if(offerVsSugg>=0.85){signal='NEGOTIATE';sc='#facc15';sb='#ca8a04';sbg='rgba(250,204,21,.07)';}
+  else{signal='PASS';sc='#ef4444';sb='#dc2626';sbg='rgba(239,68,68,.07)';}
+
+  return{TLS:Math.round(TLS),signal,sc,sb,sbg,weightPenalty,loadWeight,
+    grossRpm:grossRpm.toFixed(2),netRpm:netRpm.toFixed(2),
+    netRev,totalVariable,fixedAlloc,totalAllIn,
+    truckFuel,reeferFuel,driverLoadedPay,driverDeadPay,driverCost,
+    maintCost,tiresCost,trailerExtra,hazardOpCost,hazardDrvPremium,
+    suggestedTotal,suggestedRpm:suggestedRpm.toFixed(2),
+    gapTotal,gapRpm:gapRpm.toFixed(2),
+    offerPct:Math.round(offerVsSugg*100),
+    deadMiles,loadedMiles,totalMiles,
+    effMpg:effMpg.toFixed(1),fixedPerMile:fixedPerMile.toFixed(3),
+    hz,reeferBonus,driverDeadFree:deadMiles<=s.freeDeadMi&&deadMiles>0};
+}
+
+/* ─── RENDER ─── */
+function quickRender(rate,miles){
+  var r=computeAll(rate,miles);
+  var area=document.getElementById('resultsArea');
+  if(!document.getElementById('sigBlock'))
+    area.innerHTML='<div id="sigBlock"></div><div id="rateBlock"></div><div id="wxBlock"></div><div id="mktBlock"></div><div id="costBlock"></div><div id="aiBlock"></div>';
+  renderSignal(r);
+  renderRateCompare(r,rate,miles);
+  renderCostTable(r);
+}
+
+function renderSignal(r){
+  var nc=parseFloat(r.netRpm)>=1.65?'#4ade80':parseFloat(r.netRpm)>=1.20?'#facc15':'#f87171';
+  var html='<div class="sig-block" style="border-color:'+r.sb+';background:'+r.sbg+'">';
+  html+='<div><div class="sig-word" style="color:'+r.sc+'">'+r.signal+'</div>';
+  html+='<div class="sig-sub" style="color:'+r.sc+'">TLS '+r.TLS+'/100 &nbsp;·&nbsp; Offer is '+r.offerPct+'% of suggested rate</div>';
+  if(r.hz.tier>0) html+='<div style="font-size:11px;color:#fb923c;margin-top:4px">⚠️ '+wxTierLabel(r.hz.tier)+' — hazard pay included in cost model</div>';
+  html+='</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px">';
+  html+='<div class="m"><div class="mv">$'+r.grossRpm+'</div><div class="ml">Gross RPM</div></div>';
+  html+='<div class="m"><div class="mv" style="color:'+nc+'">$'+r.netRpm+'</div><div class="ml">Net RPM</div><div class="ms">all costs in</div></div>';
+  html+='<div class="m"><div class="mv" style="color:'+(r.netRev>=0?'#4ade80':'#f87171')+'">$'+Math.round(r.netRev).toLocaleString()+'</div><div class="ml">Net Revenue</div></div>';
+  html+='</div></div>';
+  document.getElementById('sigBlock').innerHTML=html;
+}
+
+function renderRateCompare(r,rate,miles){
+  var gc=r.gapTotal>=0?'#4ade80':r.gapTotal>=-200?'#facc15':'#f87171';
+  var gs=r.gapTotal>=0?'+':'';
+  var barPct=Math.min(100,Math.max(2,(rate/Math.max(1,r.suggestedTotal))*100));
+  var barColor=rate>=r.suggestedTotal?'#22c55e':rate>=r.suggestedTotal*0.85?'#facc15':'#ef4444';
+  var bePct=Math.min(100,Math.round((r.totalAllIn/Math.max(1,r.suggestedTotal))*100));
+
+  var html='<div class="card"><div class="ct">Rate Comparison</div>';
+  html+='<div class="rate-3col">';
+
+  html+='<div class="rcol" style="border-color:rgba(0,142,151,.4)">';
+  html+='<div class="rcol-title" style="color:var(--aqua)">RPC Suggested</div>';
+  html+='<div class="rcol-big" style="color:#fff">$'+r.suggestedTotal.toLocaleString()+'</div>';
+  html+='<div class="rcol-rpm" style="color:var(--aqua)">$'+r.suggestedRpm+'/mi</div>';
+  html+='<div class="rcol-sub">Break-even × '+A.settings.marginMult+'x'+(r.hz.tier>=2?' + hazard':'')+'</div>';
+  html+='</div>';
+
+  html+='<div class="rcol" style="border-color:'+r.sb+'">';
+  html+='<div class="rcol-title" style="color:'+r.sc+'">Broker Offered</div>';
+  html+='<div class="rcol-big" style="color:'+r.sc+'">$'+rate.toLocaleString()+'</div>';
+  html+='<div class="rcol-rpm" style="color:'+r.sc+'">$'+r.grossRpm+'/mi</div>';
+  html+='<div class="rcol-sub">'+r.offerPct+'% of target</div>';
+  html+='</div>';
+
+  html+='<div class="rcol">';
+  html+='<div class="rcol-title" style="color:'+gc+'">Gap</div>';
+  html+='<div class="rcol-big" style="color:'+gc+'">'+gs+'$'+Math.abs(r.gapTotal).toLocaleString()+'</div>';
+  html+='<div class="rcol-rpm" style="color:'+gc+'">'+gs+'$'+Math.abs(parseFloat(r.gapRpm)).toFixed(2)+'/mi</div>';
+  html+='<div class="rcol-sub">'+(r.gapTotal>=0?'Above target':'Need $'+Math.abs(r.gapTotal).toLocaleString()+' more')+'</div>';
+  html+='</div></div>';
+
+  html+='<div class="rate-bar-wrap">';
+  html+='<div class="rate-bar-be" style="width:'+bePct+'%"></div>';
+  html+='<div class="rate-bar-offer" style="width:'+barPct+'%;background:'+barColor+'"></div>';
+  html+='</div>';
+  html+='<div class="rate-bar-labels"><span>$0</span><span>Break-even $'+Math.round(r.totalAllIn).toLocaleString()+'</span><span>Suggested $'+r.suggestedTotal.toLocaleString()+'</span></div>';
+
+  html+='<div class="gap-note" style="margin-top:8px">';
+  if(r.signal==='TAKE IT') html+='✅ Offer covers all costs + target margin. You have <strong style="color:#4ade80">$'+r.gapTotal.toLocaleString()+'</strong> of cushion above your floor.';
+  else if(r.signal==='NEGOTIATE') html+='⚠️ Counter at <strong style="color:#facc15">$'+r.suggestedTotal.toLocaleString()+'</strong> ($'+r.suggestedRpm+'/mi) — that is your floor after all costs including '+(r.deadMiles>A.settings.freeDeadMi?'paid deadhead, ':'')+(r.hz.tier>=2?'hazard pay, ':'')+r.loadedMiles+' loaded miles.';
+  else html+='🚫 Broker must come up <strong style="color:#f87171">$'+Math.abs(r.gapTotal).toLocaleString()+'</strong> before this load makes sense. Minimum: <strong>$'+r.suggestedTotal.toLocaleString()+'</strong>.';
+  html+='</div></div>';
+
+  document.getElementById('rateBlock').innerHTML=html;
+  renderWeather(r);
+}
+
+function renderWeather(r){
+  if(!A.wxOrigin&&!A.wxDest){document.getElementById('wxBlock').innerHTML='';return;}
+  var html='<div class="card"><div class="ct">Weather at Pickup &amp; Delivery</div><div class="wx-row">';
+  [A.wxOrigin,A.wxDest].forEach(function(wx){
+    if(!wx)return;
+    var hz=wxHazard(wx);
+    html+='<div class="wx-card"><div class="wx-city">'+wx.city+'</div>';
+    html+='<div class="wx-temp">'+Math.round(wx.temp)+'°F <span style="font-size:11px;color:var(--muted)">feels '+Math.round(wx.feelsLike)+'°</span></div>';
+    html+='<div class="wx-desc">'+wx.desc+'</div>';
+    html+='<div class="wx-wind">Wind: '+Math.round(wx.windSpeed)+' mph</div>';
+    html+='<div class="wx-hz '+wxTierClass(hz.tier)+'">'+wxTierLabel(hz.tier)+'</div>';
+    html+='</div>';
+  });
+  html+='</div></div>';
+  document.getElementById('wxBlock').innerHTML=html;
+}
+
+function renderCostTable(r){
+  var d=A.selDriver,t=TRAILERS[A.selTrailer]||TRAILERS.dryvan;
+  var s=A.settings;
+  var payLbl=d?(d.payType==='cpm'?d.cpm+'¢/mi loaded':d.payType==='pct'?d.pct+'% of rate':'$'+d.flat+' flat'):'55¢/mi loaded (default)';
+  var html='<div class="card"><div class="ct">Full Cost Breakdown</div><table class="ctbl">';
+  var wtPenPct=Math.round((r.weightPenalty||0)*100);
+  var wtNote=wtPenPct>0?' ('+r.loadWeight.toLocaleString()+'lbs load — −'+wtPenPct+'% MPG)':' ('+(r.loadWeight||42000).toLocaleString()+'lbs)';
+  html+='<tr><td class="cl">Truck fuel ('+r.effMpg+' MPG'+wtNote+' @ $'+A.diesel.toFixed(3)+')</td><td class="cv" style="color:#f87171">$'+Math.round(r.truckFuel)+'</td></tr>';
+  if(r.reeferFuel>0) html+='<tr><td class="cl">Reefer unit fuel'+(r.reeferBonus>0?' (weather +'+r.reeferBonus+'¢/mi)':'')+'</td><td class="cv" style="color:#f87171">$'+Math.round(r.reeferFuel)+'</td></tr>';
+  if(r.trailerExtra>0) html+='<tr><td class="cl">'+t.label+' overhead</td><td class="cv" style="color:#f87171">$'+Math.round(r.trailerExtra)+'</td></tr>';
+  html+='<tr><td class="cl">Driver pay — loaded miles ('+payLbl+')</td><td class="cv" style="color:#f87171">$'+Math.round(r.driverLoadedPay)+'</td></tr>';
+  if(r.deadMiles>0){
+    if(r.driverDeadFree){
+      html+='<tr><td class="cl">Driver deadhead pay ('+r.deadMiles+' mi ≤ '+s.freeDeadMi+' mi threshold — free)</td><td class="cv" style="color:#4ade80">$0</td></tr>';
+    } else {
+      html+='<tr><td class="cl">Driver deadhead pay ('+r.deadMiles+' mi × '+s.deadCpm+'¢/mi — over threshold)</td><td class="cv" style="color:#f87171">$'+Math.round(r.driverDeadPay)+'</td></tr>';
+    }
+  }
+  html+='<tr><td class="cl">Maintenance + tires</td><td class="cv" style="color:#f87171">$'+Math.round(r.maintCost+r.tiresCost)+'</td></tr>';
+  if(r.hazardOpCost>0) html+='<tr class="hzrow"><td class="cl">⚠️ Hazard operating cost (Tier '+r.hz.tier+')</td><td class="cv" style="color:#fb923c">$'+Math.round(r.hazardOpCost)+'</td></tr>';
+  if(r.hazardDrvPremium>0) html+='<tr class="hzrow"><td class="cl">⚠️ Hazard driver risk premium</td><td class="cv" style="color:#fb923c">$'+Math.round(r.hazardDrvPremium)+'</td></tr>';
+  html+='<tr><td class="cl">Fixed costs ($'+r.fixedPerMile+'/mi × '+r.totalMiles+' total mi)</td><td class="cv" style="color:#fb923c">$'+Math.round(r.fixedAlloc)+'</td></tr>';
+  html+='<tr class="tot"><td>Total All-In Cost</td><td style="text-align:right">$'+Math.round(r.totalAllIn).toLocaleString()+'</td></tr>';
+  html+='<tr class="tot"><td style="color:var(--aqua)">RPC Suggested Rate (×'+s.marginMult+')</td><td style="text-align:right;color:var(--aqua)">$'+r.suggestedTotal.toLocaleString()+'</td></tr>';
+  html+='<tr class="tot"><td style="color:'+(r.netRev>=0?'#4ade80':'#f87171')+'">Net Revenue at Broker Rate</td><td style="text-align:right;color:'+(r.netRev>=0?'#4ade80':'#f87171')+'">$'+Math.round(r.netRev).toLocaleString()+'</td></tr>';
+  html+='</table></div>';
+  document.getElementById('costBlock').innerHTML=html;
+}
+
+/* ─── FULL ANALYSIS ─── */
+function analyze(){
+  var rate=gv('fRate'),miles=A.loadedMiles||A.miles;
+  var msg=document.getElementById('statusMsg');
+  var puCoords=getStopCoords('pu'),delCoords=getStopCoords('del');
+  if(!puCoords.length){msg.textContent='Add a pickup stop and enter the ZIP.';return;}
+  if(!delCoords.length){msg.textContent='Add a delivery stop and enter the ZIP.';return;}
+  if(!rate){msg.textContent='Enter broker offered rate.';return;}
+  if(!miles){msg.textContent='ZIPs need to be selected from the dropdown to calculate miles.';return;}
+  msg.textContent=''; A.wxOrigin=null; A.wxDest=null;
+  quickRender(rate,miles);
+  var area=document.getElementById('resultsArea');
+  if(!document.getElementById('aiBlock')) area.innerHTML+='<div id="aiBlock"></div>';
+  document.getElementById('aiBlock').innerHTML='<div class="ai-box"><div class="loading"><span class="spin"></span>Fetching weather and running AI analysis...</div></div>';
+
+  var wxDone=0;
+  function wxCheck(){wxDone++;if(wxDone>=2){quickRender(rate,miles);runAI(rate,miles);}}
+  if(A.owmKey&&A.owmKey.length>8&&puCoords[0]&&delCoords[0]){
+    fetchWeather(puCoords[0].lat,puCoords[0].lng,puCoords[0].label,function(wx){A.wxOrigin=wx;wxCheck();});
+    fetchWeather(delCoords[delCoords.length-1].lat,delCoords[delCoords.length-1].lng,delCoords[delCoords.length-1].label,function(wx){A.wxDest=wx;wxCheck();});
+  } else {wxDone=2;runAI(rate,miles);}
+}
+
+function fetchWeather(lat,lon,label,cb){
+  // Key is server-side, always attempt
+  fetch('/.netlify/functions/weather?lat='+lat+'&lon='+lon)
+    .then(function(r){return r.json();}).then(function(d){
+      if(d.cod!==200&&d.cod!=='200'){cb(null);return;}
+      cb({city:label,temp:d.main.temp,feelsLike:d.main.feels_like,desc:d.weather[0].description,weatherId:d.weather[0].id,windSpeed:d.wind.speed,windDeg:d.wind.deg});
+    }).catch(function(){cb(null);});
+}
+
+function runAI(rate,miles){
+  var r=computeAll(rate,miles);
+  var t=TRAILERS[A.selTrailer]||TRAILERS.dryvan;
+  var d=A.selDriver;
+  var puCoords=getStopCoords('pu'),delCoords=getStopCoords('del');
+  var origLabel=puCoords[0]?puCoords[0].label:'unknown origin';
+  var destLabel=delCoords[delCoords.length-1]?delCoords[delCoords.length-1].label:'unknown destination';
+  var origState=puCoords[0]?puCoords[0].state:'';
+  var destState=delCoords[delCoords.length-1]?delCoords[delCoords.length-1].state:'';
+  var stops=puCoords.length+delCoords.length;
+  var trulos=getTrulosRate(origState,destState,A.selTrailer);
+  var trulosCtx=trulos?'Trulos market: $'+trulos.rpm+'/mi '+origState+'→'+destState+' '+t.label+' ('+trulos.trend+' trend)':'No Trulos lane data';
+  var wxCtx=A.wxOrigin||A.wxDest?'Weather: '+(A.wxOrigin?A.wxOrigin.city+' '+Math.round(A.wxOrigin.temp)+'°F wind '+Math.round(A.wxOrigin.windSpeed)+'mph':'')+(A.wxDest?' | '+A.wxDest.city+' '+Math.round(A.wxDest.temp)+'°F wind '+Math.round(A.wxDest.windSpeed)+'mph':'')+(r.hz.tier>0?' — Hazard Tier '+r.hz.tier+': $'+Math.round(r.hazardOpCost+r.hazardDrvPremium)+' added':''):'No weather data';
+  var dCtx=d?d.name+' '+d.payType+'='+(d.payType==='cpm'?d.cpm+'¢/mi':d.payType==='pct'?d.pct+'%':'$'+d.flat):'Default 55¢/mi';
+  var deadCtx=r.deadMiles>0?(r.driverDeadFree?r.deadMiles+'mi deadhead FREE (under '+A.settings.freeDeadMi+'mi threshold)':r.deadMiles+'mi deadhead at '+A.settings.deadCpm+'¢/mi (over threshold)'):'No deadhead';
+
+  var prompt='Freight dispatch analyst for Road Pro Carriers NC/SC. Return ONLY valid JSON.\n\nLane: '+origLabel+' → '+destLabel+(stops>2?' ('+stops+' stops)':'')+'\nTrailer: '+t.label+'\n'+dCtx+'\n'+deadCtx+'\n\nBroker offered: $'+rate+' ($'+r.grossRpm+'/mi)\nRPC suggested: $'+r.suggestedTotal+' ($'+r.suggestedRpm+'/mi)\nGap: $'+r.gapTotal+' ('+r.offerPct+'% of target)\nNet RPM: $'+r.netRpm+' | Net revenue: $'+Math.round(r.netRev)+'\nTLS: '+r.TLS+'/100 — '+r.signal+'\n'+trulosCtx+'\n'+wxCtx+'\n\nReturn ONLY:\n{"recommendation":"TAKE IT","confidence":88,"market_assessment":"at market","reasoning":"2-3 direct sentences. Reference gap vs suggested and hazard if relevant.","counter_rate_total":'+r.suggestedTotal+',"counter_rate_rpm":'+r.suggestedRpm+',"reload":"One reload idea from '+destLabel+'","flags":[]}';
+
+  callClaude(prompt,function(txt){
+    var data;
+    try{data=JSON.parse(txt.replace(/```json|```/g,'').trim());}
+    catch(e){data={recommendation:r.signal,confidence:75,market_assessment:'at market',
+      reasoning:'Broker offer is '+r.offerPct+'% of RPC suggested rate of $'+r.suggestedTotal+'. Net RPM of $'+r.netRpm+' '+(parseFloat(r.netRpm)>=1.65?'covers all carrier costs.':'is below full cost coverage.')+(r.hz.tier>=2?' Hazard pay of $'+Math.round(r.hazardOpCost+r.hazardDrvPremium)+' included.':''),
+      counter_rate_total:r.suggestedTotal,counter_rate_rpm:r.suggestedRpm,
+      reload:'Check load boards in '+destLabel+' for backhaul opportunities.',flags:[]};}
+
+    var mktHtml='';
+    if(trulos){
+      var isHot=trulos.trend==='rising'||trulos.trend==='up';
+      var isCold=trulos.trend==='falling'||trulos.trend==='down';
+      var aboveMarket=parseFloat(r.grossRpm)>=parseFloat(trulos.rpm);
+      var rpmGap=Math.abs(parseFloat(r.grossRpm)-parseFloat(trulos.rpm)).toFixed(2);
+
+      // Heatmap score 0-100: combo of trend + broker vs market
+      var heatScore=50;
+      if(isHot) heatScore+=25;
+      if(isCold) heatScore-=25;
+      if(aboveMarket) heatScore+=15;
+      else heatScore-=10;
+      heatScore=Math.max(0,Math.min(100,heatScore));
+
+      // Heat label and colors
+      var heatLabel,heatColor,heatBg,heatIcon;
+      if(heatScore>=70){
+        heatLabel='HOT LANE'; heatColor='#f97316'; heatBg='rgba(249,115,22,.12)'; heatIcon='🔥';
+      } else if(heatScore>=45){
+        heatLabel='ACTIVE LANE'; heatColor='#4ade80'; heatBg='rgba(74,222,128,.1)'; heatIcon='✅';
+      } else {
+        heatLabel='SOFT LANE'; heatColor='#60a5fa'; heatBg='rgba(96,165,250,.1)'; heatIcon='❄️';
+      }
+
+      var tc=isHot?'#4ade80':isCold?'#f87171':'#facc15';
+      var ta=isHot?'▲':isCold?'▼':'→';
+
+      mktHtml='<div class="card" style="border:1px solid '+heatColor+';background:'+heatBg+'">'
+        // Heat banner
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<span style="font-size:20px">'+heatIcon+'</span>'
+        +'<div>'
+        +'<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:'+heatColor+'">'+heatLabel+'</div>'
+        +'<div style="font-size:10px;color:var(--muted)">'+origState+' → '+destState+' · '+t.label+'</div>'
+        +'</div></div>'
+        // Heat thermometer bar
+        +'<div style="text-align:right">'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:3px">Lane Heat</div>'
+        +'<div style="width:80px;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden">'
+        +'<div style="width:'+heatScore+'%;height:100%;background:'+heatColor+';border-radius:4px;transition:width .3s"></div>'
+        +'</div>'
+        +'<div style="font-size:10px;color:'+heatColor+';font-weight:700;margin-top:2px">'+heatScore+'/100</div>'
+        +'</div></div>'
+        // Rate data
+        +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
+        +'<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:2px">Market Avg</div>'
+        +'<div style="font-size:16px;font-weight:800;color:#fff">$'+trulos.rpm+'</div>'
+        +'<div style="font-size:10px;color:var(--muted)">/mi</div>'
+        +'</div>'
+        +'<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:2px">Broker Offer</div>'
+        +'<div style="font-size:16px;font-weight:800;color:'+(aboveMarket?'#4ade80':'#fb923c')+'">$'+r.grossRpm+'</div>'
+        +'<div style="font-size:10px;color:'+(aboveMarket?'#4ade80':'#fb923c')+'">'+(aboveMarket?'▲ +$'+rpmGap+' above':'▼ -$'+rpmGap+' below')+'</div>'
+        +'</div>'
+        +'<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:2px">Trend</div>'
+        +'<div style="font-size:16px;font-weight:800;color:'+tc+'">'+ta+'</div>'
+        +'<div style="font-size:10px;color:'+tc+'">'+trulos.trend+'</div>'
+        +'</div>'
+        +'</div>'
+        +(trulos.low&&trulos.high?'<div style="font-size:10px;color:var(--muted);margin-top:8px;text-align:center">Rate range: $'+trulos.low+' – $'+trulos.high+'/mi · Source: Trulos</div>':'')
+        +'</div>';
+    }
+
+    var rec=data.recommendation||r.signal;
+    var rc=rec==='TAKE IT'?'#4ade80':rec==='NEGOTIATE'?'#facc15':'#f87171';
+    var html=mktHtml+'<div class="ai-box">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div class="dot"></div><div style="font-size:10px;font-weight:700;color:var(--aqua);text-transform:uppercase;letter-spacing:.6px">AI Load Analysis</div><div style="margin-left:auto;font-size:10px;color:var(--muted)">'+data.confidence+'% confidence</div></div>'
+      +'<div class="ai-rec" style="color:'+rc+'">'+rec+'</div>'
+      +'<div class="ai-text">'+data.reasoning+'</div>';
+    if(rec!=='TAKE IT'){
+      html+='<div class="counter-box"><span style="color:var(--orange);font-weight:700">Counter: $'+parseFloat(data.counter_rate_total||r.suggestedTotal).toLocaleString()+'</span>'
+        +' ($'+parseFloat(data.counter_rate_rpm||r.suggestedRpm).toFixed(2)+'/mi) — floor based on all costs + '+A.settings.marginMult+'x margin'+(r.hz.tier>=2?', includes hazard pay':'')+(r.deadMiles>A.settings.freeDeadMi?', paid deadhead':'')+'</div>';
+    }
+    if(data.reload) html+='<div class="ai-reload">↺ Reload: '+data.reload+'</div>';
+    var flags=(data.flags||[]).filter(function(f){return f&&f.length>3;});
+    if(flags.length) html+=flags.map(function(f){return '<div class="flag">⚠ '+f+'</div>';}).join('');
+    html+='</div>';
+    document.getElementById('aiBlock').innerHTML=html;
+    document.getElementById('mktBlock').innerHTML='';
+  });
+}
+
+function checkBroker(){
+  var mc=document.getElementById('fMC').value.trim();
+  if(!mc){document.getElementById('statusMsg').textContent='Enter broker MC # first.';return;}
+  document.getElementById('statusMsg').textContent='';
+  var area=document.getElementById('resultsArea');
+  var html='<div class="card" id="fmcsaBox"><div class="ct">FMCSA Broker Verification — '+mc+'</div>'
+    +'<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px">'
+    +'<div><span style="color:var(--muted)">MC: </span><span style="font-weight:600">'+mc+'</span></div>'
+    +'<div><span style="color:var(--muted)">Authority: </span><span style="color:#4ade80;font-weight:700">ACTIVE</span></div>'
+    +'<div><span style="color:var(--muted)">Insurance: </span><span style="color:#4ade80;font-weight:700">ON FILE</span></div>'
+    +'<div><span style="color:var(--muted)">Safety: </span><span style="color:#fb923c;font-weight:700">Satisfactory</span></div>'
+    +'</div>'
+    +'<div style="font-size:10px;color:var(--dim);margin-top:6px">Demo — verify live at <a href="https://li.fmcsa.dot.gov/liview/prod/general/licenseSearch.do" target="_blank" style="color:var(--aqua)">li.fmcsa.dot.gov</a></div></div>';
+  var ex=document.getElementById('fmcsaBox');
+  if(ex)ex.outerHTML=html; else area.insertAdjacentHTML('afterbegin',html);
+}
+
+function callClaude(prompt,cb){
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:700,messages:[{role:'user',content:prompt}]})})
+    .then(function(r){return r.json();}).then(function(d){cb(d.content&&d.content[0]?d.content[0].text:'');})
+    .catch(function(){cb('{}');});
+}
+
+/* ─── DRIVER PROFILES ─── */
+function togglePay(){
+  var t=document.getElementById('pPayType').value;
+  document.getElementById('pf-cpm').style.display=t==='cpm'?'block':'none';
+  document.getElementById('pf-pct').style.display=t==='pct'?'block':'none';
+  document.getElementById('pf-flat').style.display=t==='flat'?'block':'none';
+}
+function saveDriver(){
+  var name=document.getElementById('pName').value.trim();
+  if(!name){alert('Enter driver name.');return;}
+  var eid=document.getElementById('editId').value;
+  var driver={id:eid||Date.now().toString(),name,
+    truck:document.getElementById('pTruck').value.trim()||'Unit',
+    payType:document.getElementById('pPayType').value,
+    cpm:document.getElementById('pCpm').value,pct:document.getElementById('pPct').value,flat:document.getElementById('pFlat').value,
+    home:document.getElementById('pHome').value.trim(),equip:document.getElementById('pEquip').value,mpg:document.getElementById('pMpg').value};
+  if(eid){var i=A.drivers.findIndex(function(d){return d.id===eid;});if(i>=0)A.drivers[i]=driver;}
+  else A.drivers.push(driver);
+  saveDrivers();renderChips();renderProfiles();clearDForm();
+}
+function clearDForm(){
+  document.getElementById('editId').value='';
+  ['pName','pTruck','pHome'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('pCpm').value='55';document.getElementById('pPct').value='28';
+  document.getElementById('pFlat').value='200';document.getElementById('pMpg').value='6.5';
+  document.getElementById('pPayType').value='cpm';document.getElementById('pEquip').value='dryvan';
+  togglePay();document.getElementById('dFormTitle').textContent='Add Driver';
+}
+function editDriver(id){
+  var d=A.drivers.find(function(dr){return dr.id===id;});if(!d)return;
+  document.getElementById('editId').value=d.id;document.getElementById('pName').value=d.name;
+  document.getElementById('pTruck').value=d.truck;document.getElementById('pPayType').value=d.payType;
+  document.getElementById('pCpm').value=d.cpm;document.getElementById('pPct').value=d.pct;
+  document.getElementById('pFlat').value=d.flat;document.getElementById('pHome').value=d.home||'';
+  document.getElementById('pEquip').value=d.equip||'dryvan';document.getElementById('pMpg').value=d.mpg||'6.5';
+  togglePay();document.getElementById('dFormTitle').textContent='Edit — '+d.name;
+  document.getElementById('pName').scrollIntoView({behavior:'smooth'});
+}
+function deleteDriver(id){
+  if(!confirm('Remove this driver?'))return;
+  A.drivers=A.drivers.filter(function(d){return d.id!==id;});
+  if(A.selDriver&&A.selDriver.id===id){A.selDriver=null;document.getElementById('driverBadge').style.display='none';}
+  saveDrivers();renderChips();renderProfiles();
+}
+function renderProfiles(){
+  var el=document.getElementById('profileList');
+  if(!A.drivers.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px 0 12px">No drivers added yet.</div>';return;}
+  var pb={cpm:'pb-cpm',pct:'pb-pct',flat:'pb-flat'};
+  var pl={cpm:'CPM',pct:'Percentage',flat:'Flat Rate'};
+  el.innerHTML=A.drivers.map(function(d){
+    var pay=d.payType==='cpm'?d.cpm+'¢/mi':d.payType==='pct'?d.pct+'% of load':'$'+d.flat+'/load';
+    return '<div class="prow"><div>'
+      +'<div style="font-weight:700;font-size:12px">'+d.name+' <span style="color:var(--muted);font-weight:400;font-size:11px">— '+d.truck+'</span></div>'
+      +'<div style="color:var(--muted);font-size:11px;margin-top:2px"><span class="pb '+pb[d.payType]+'">'+pl[d.payType]+'</span> '+pay+' &nbsp;·&nbsp; '+d.mpg+' MPG &nbsp;·&nbsp; '+(TRAILERS[d.equip]||TRAILERS.dryvan).label+'</div>'
+      +'</div><div style="display:flex;gap:6px">'
+      +'<button class="btn btn-g btn-sm" onclick="editDriver(\''+d.id+'\')">Edit</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="deleteDriver(\''+d.id+'\')">Remove</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function clearAll(){
+  document.getElementById('curLocInput').value=''; A.curLocCoords=null;
+  document.getElementById('puStops').innerHTML='';
+  document.getElementById('delStops').innerHTML='';
+  addStop('pu'); addStop('del');
+  document.getElementById('fRate').value='';
+  document.getElementById('fMC').value='';
+  document.getElementById('fWeight').value='';
+  A.miles=0;A.deadMiles=0;A.loadedMiles=0;A.wxOrigin=null;A.wxDest=null;
+  document.getElementById('routeSummary').style.display='none';
+  document.getElementById('livePreview').style.display='none';
+  document.getElementById('statusMsg').textContent='';
+  document.getElementById('resultsArea').innerHTML='<div class="empty">Select a driver, build your lane, enter the broker rate, then click Analyze Load.</div>';
+}
+/* ─── MARKET HEATMAP ─── */
+
+// Simplified USA state paths (D3 Albers projection, 960x600)
+var STATE_PATHS = {
+  AL:{d:"M 573 357 L 574 400 L 562 400 L 556 416 L 553 400 L 553 357 Z",cx:563,cy:380},
+  AK:{d:"M 110 480 L 200 480 L 200 560 L 110 560 Z",cx:155,cy:520},
+  AZ:{d:"M 178 310 L 238 310 L 238 388 L 178 388 Z",cx:208,cy:349},
+  AR:{d:"M 530 340 L 573 340 L 573 357 L 553 357 L 548 370 L 530 370 Z",cx:551,cy:354},
+  CA:{d:"M 110 240 L 178 240 L 178 388 L 140 388 L 110 310 Z",cx:144,cy:314},
+  CO:{d:"M 290 280 L 370 280 L 370 340 L 290 340 Z",cx:330,cy:310},
+  CT:{d:"M 778 210 L 800 210 L 800 230 L 778 230 Z",cx:789,cy:220},
+  DE:{d:"M 768 230 L 785 230 L 785 248 L 768 248 Z",cx:776,cy:239},
+  FL:{d:"M 573 400 L 630 400 L 650 460 L 600 480 L 573 440 Z",cx:610,cy:437},
+  GA:{d:"M 573 357 L 630 357 L 630 400 L 573 400 Z",cx:601,cy:378},
+  HI:{d:"M 230 530 L 340 530 L 340 560 L 230 560 Z",cx:285,cy:545},
+  ID:{d:"M 178 160 L 240 160 L 248 240 L 206 240 L 192 220 L 178 220 Z",cx:213,cy:200},
+  IL:{d:"M 545 240 L 580 240 L 580 320 L 545 320 Z",cx:562,cy:280},
+  IN:{d:"M 580 240 L 610 240 L 610 310 L 580 310 Z",cx:595,cy:275},
+  IA:{d:"M 490 230 L 545 230 L 545 270 L 490 270 Z",cx:517,cy:250},
+  KS:{d:"M 390 300 L 490 300 L 490 340 L 390 340 Z",cx:440,cy:320},
+  KY:{d:"M 580 310 L 650 310 L 650 340 L 580 340 Z",cx:615,cy:325},
+  LA:{d:"M 503 400 L 553 400 L 556 416 L 540 430 L 503 430 Z",cx:528,cy:413},
+  ME:{d:"M 820 140 L 860 140 L 860 200 L 820 200 Z",cx:840,cy:170},
+  MD:{d:"M 730 245 L 780 245 L 780 265 L 730 265 Z",cx:755,cy:255},
+  MA:{d:"M 790 190 L 840 190 L 840 215 L 790 215 Z",cx:815,cy:202},
+  MI:{d:"M 590 180 L 650 180 L 650 240 L 590 240 Z",cx:620,cy:210},
+  MN:{d:"M 450 160 L 520 160 L 520 230 L 450 230 Z",cx:485,cy:195},
+  MS:{d:"M 540 340 L 573 340 L 573 400 L 540 400 Z",cx:556,cy:370},
+  MO:{d:"M 490 290 L 550 290 L 550 340 L 490 340 Z",cx:520,cy:315},
+  MT:{d:"M 240 150 L 370 150 L 370 220 L 240 220 Z",cx:305,cy:185},
+  NE:{d:"M 390 260 L 490 260 L 490 300 L 390 300 Z",cx:440,cy:280},
+  NV:{d:"M 178 220 L 238 220 L 238 310 L 200 310 L 178 280 Z",cx:208,cy:265},
+  NH:{d:"M 806 170 L 826 170 L 826 210 L 806 210 Z",cx:816,cy:190},
+  NJ:{d:"M 768 220 L 790 220 L 790 250 L 768 250 Z",cx:779,cy:235},
+  NM:{d:"M 270 340 L 350 340 L 350 410 L 270 410 Z",cx:310,cy:375},
+  NY:{d:"M 720 180 L 800 180 L 800 230 L 720 230 Z",cx:760,cy:205},
+  NC:{d:"M 650 310 L 740 310 L 740 345 L 650 345 Z",cx:695,cy:327},
+  ND:{d:"M 380 160 L 460 160 L 460 200 L 380 200 Z",cx:420,cy:180},
+  OH:{d:"M 620 240 L 670 240 L 670 295 L 620 295 Z",cx:645,cy:267},
+  OK:{d:"M 390 340 L 510 340 L 510 380 L 390 380 Z",cx:450,cy:360},
+  OR:{d:"M 140 200 L 215 200 L 215 265 L 140 265 Z",cx:177,cy:232},
+  PA:{d:"M 680 220 L 760 220 L 760 262 L 680 262 Z",cx:720,cy:241},
+  RI:{d:"M 808 208 L 826 208 L 826 222 L 808 222 Z",cx:817,cy:215},
+  SC:{d:"M 650 345 L 700 345 L 700 385 L 650 385 Z",cx:675,cy:365},
+  SD:{d:"M 380 200 L 460 200 L 460 250 L 380 250 Z",cx:420,cy:225},
+  TN:{d:"M 553 340 L 650 340 L 650 367 L 553 367 Z",cx:601,cy:353},
+  TX:{d:"M 350 350 L 510 350 L 510 450 L 420 470 L 350 420 Z",cx:430,cy:405},
+  UT:{d:"M 238 260 L 295 260 L 295 340 L 238 340 Z",cx:266,cy:300},
+  VT:{d:"M 786 165 L 808 165 L 808 200 L 786 200 Z",cx:797,cy:182},
+  VA:{d:"M 670 280 L 760 280 L 760 318 L 670 318 Z",cx:715,cy:299},
+  WA:{d:"M 140 140 L 215 140 L 215 200 L 140 200 Z",cx:177,cy:170},
+  WV:{d:"M 668 262 L 720 262 L 720 298 L 668 298 Z",cx:694,cy:280},
+  WI:{d:"M 510 175 L 570 175 L 570 240 L 510 240 Z",cx:540,cy:207},
+  WY:{d:"M 268 220 L 370 220 L 370 285 L 268 285 Z",cx:319,cy:252},
+  DC:{d:"M 752 258 L 762 258 L 762 268 L 752 268 Z",cx:757,cy:263}
+};
+
+var STATE_ABBR_TO_NAME = {
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',
+  DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',
+  KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',
+  MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',
+  NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',
+  OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',
+  TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',
+  WI:'Wisconsin',WY:'Wyoming',DC:'D.C.'
+};
+
+function getRpmColor(rpm){
+  if(!rpm||rpm<0.5) return 'rgba(255,255,255,0.08)';
+  if(rpm>=2.5) return '#16a34a';
+  if(rpm>=2.2) return '#22c55e';
+  if(rpm>=2.0) return '#eab308';
+  if(rpm>=1.7) return '#f97316';
+  return '#ef4444';
+}
+
+function renderMarket(){
+  var equip=document.getElementById('mktEquip')?document.getElementById('mktEquip').value:'van';
+  var svg=document.getElementById('usaMap');
+  var laneList=document.getElementById('mktLaneList');
+  if(!svg||!laneList) return;
+
+  // Build state RPM map from Trulos data
+  var stateRpm={};
+  var allLanes=[];
+
+  if(A.trulosData){
+    var lanes=A.trulosData[equip]||A.trulosData.van||[];
+    // Aggregate by origin state
+    var byState={};
+    lanes.forEach(function(l){
+      var orig=l.origin_state||l.orig||'';
+      var dest=l.dest_state||l.dest||'';
+      var rpm=parseFloat(l.avg_rate_rpm||l.rate||0);
+      var trend=l.trend_direction||l.trend||'flat';
+      if(!orig||!dest||!rpm) return;
+      if(!byState[orig]) byState[orig]={total:0,count:0};
+      byState[orig].total+=rpm; byState[orig].count++;
+      allLanes.push({orig,dest,rpm,trend,
+        low:parseFloat(l.low_rate||0),high:parseFloat(l.high_rate||0)});
+    });
+    Object.keys(byState).forEach(function(s){
+      stateRpm[s]=(byState[s].total/byState[s].count);
+    });
+    document.getElementById('mktUpdated').textContent='Live data · '+new Date().toLocaleDateString();
+  } else {
+    document.getElementById('mktUpdated').textContent='Loading...';
+    fetch('/.netlify/functions/trulos?file=state_rates_trends.json')
+      .then(function(r){return r.json();}).then(function(d){
+        A.trulosData=d; renderMarket();
+      }).catch(function(){
+        document.getElementById('mktEmpty').style.display='block';
+        document.getElementById('mktEmpty').textContent='Market data unavailable';
+      });
+    return;
+  }
+
+  // Draw states
+  svg.innerHTML='';
+  Object.keys(STATE_PATHS).forEach(function(abbr){
+    var sp=STATE_PATHS[abbr];
+    var rpm=stateRpm[abbr]||0;
+    var color=getRpmColor(rpm);
+    var g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.style.cursor='pointer';
+
+    var path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',sp.d);
+    path.setAttribute('fill',color);
+    path.setAttribute('stroke','rgba(0,0,0,0.4)');
+    path.setAttribute('stroke-width','0.8');
+    g.appendChild(path);
+
+    // State label
+    var text=document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x',sp.cx); text.setAttribute('y',sp.cy+4);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('fill','rgba(255,255,255,0.85)');
+    text.setAttribute('font-size','8');
+    text.setAttribute('font-weight','600');
+    text.setAttribute('pointer-events','none');
+    text.textContent=abbr;
+    g.appendChild(text);
+
+    // Tooltip
+    g.addEventListener('mousemove',function(e){
+      var tt=document.getElementById('mktTooltip');
+      tt.style.display='block';
+      tt.style.left=(e.clientX+12)+'px';
+      tt.style.top=(e.clientY-10)+'px';
+      tt.innerHTML='<div style="font-weight:700;color:#fff;margin-bottom:4px">'+STATE_ABBR_TO_NAME[abbr]+'</div>'
+        +(rpm?'<div style="color:#4ade80;font-size:14px;font-weight:800">$'+rpm.toFixed(2)+'/mi</div>'
+             +'<div style="font-size:10px;color:var(--muted)">Avg outbound RPM</div>'
+            :'<div style="color:rgba(255,255,255,.4)">No data</div>');
+    });
+    g.addEventListener('mouseleave',function(){
+      document.getElementById('mktTooltip').style.display='none';
+    });
+    svg.appendChild(g);
+  });
+
+  // Top lanes list — sorted by RPM descending
+  allLanes.sort(function(a,b){return b.rpm-a.rpm;});
+  var top=allLanes.slice(0,20);
+  laneList.innerHTML=top.map(function(l,i){
+    var tc=l.trend==='rising'||l.trend==='up'?'#4ade80':l.trend==='falling'||l.trend==='down'?'#f87171':'#facc15';
+    var ta=l.trend==='rising'||l.trend==='up'?'▲':l.trend==='falling'||l.trend==='down'?'▼':'→';
+    var bc=l.rpm>=2.5?'rgba(34,197,94,.12)':l.rpm>=2.0?'rgba(234,179,8,.1)':'rgba(239,68,68,.1)';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:'+bc+';border-radius:5px;cursor:pointer" onclick="document.getElementById(\'mktEquip\').value=\''+equip+'\'">'
+      +'<div style="font-size:10px;color:var(--muted);min-width:16px;text-align:right">'+(i+1)+'</div>'
+      +'<div style="flex:1;font-size:11px;font-weight:600">'+l.orig+' → '+l.dest+'</div>'
+      +'<div style="font-size:12px;font-weight:800;color:#fff">$'+l.rpm.toFixed(2)+'</div>'
+      +'<div style="font-size:11px;color:'+tc+'">'+ta+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+
+/* ─── MARKET VIEW TOGGLE ─── */
+function setMktView(view){
+  ['heatmap','rates','lanes'].forEach(function(v){
+    document.getElementById('mktView'+v.charAt(0).toUpperCase()+v.slice(1)).style.display=v===view?'block':'none';
+  });
+  var btns={heatmap:'btnHeat',rates:'btnRates',lanes:'btnLanes'};
+  Object.keys(btns).forEach(function(v){
+    var btn=document.getElementById(btns[v]);
+    if(btn){
+      btn.style.background=v===view?'rgba(0,142,151,.3)':'rgba(255,255,255,.06)';
+      btn.style.borderColor=v===view?'var(--aqua)':'rgba(255,255,255,.15)';
+      btn.style.color=v===view?'#fff':'rgba(255,255,255,.5)';
+    }
+  });
+}
+
+</script>
+</body>
+</html>
