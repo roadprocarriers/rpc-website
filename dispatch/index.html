@@ -1363,14 +1363,69 @@ function runAI(rate,miles){
 
     var mktHtml='';
     if(trulos){
-      var tc=trulos.trend==='rising'||trulos.trend==='up'?'#4ade80':trulos.trend==='falling'||trulos.trend==='down'?'#f87171':'#facc15';
-      var ta=trulos.trend==='rising'||trulos.trend==='up'?'▲':trulos.trend==='falling'||trulos.trend==='down'?'▼':'→';
-      mktHtml='<div class="card"><div class="mkt-strip">'
-        +'<div class="mkt-title">Trulos Lane Rate — '+origState+' → '+destState+' '+t.label+'</div>'
-        +'<div class="mkt-row"><span class="mkt-lbl">Market avg RPM</span><span style="font-weight:600">$'+trulos.rpm+(trulos.low&&trulos.high?' &nbsp;<span style="color:var(--dim);font-size:10px">($'+trulos.low+' – $'+trulos.high+')</span>':'')+'</span></div>'
-        +'<div class="mkt-row"><span class="mkt-lbl">Broker vs market</span><span style="font-weight:600;color:'+(parseFloat(r.grossRpm)>=parseFloat(trulos.rpm)?'#4ade80':'#fb923c')+'">'+(parseFloat(r.grossRpm)>=parseFloat(trulos.rpm)?'Above':'Below')+' avg</span></div>'
-        +'<div class="mkt-row"><span class="mkt-lbl">Rate trend</span><span style="font-weight:600;color:'+tc+'">'+ta+' '+trulos.trend+'</span></div>'
-        +'</div></div>';
+      var isHot=trulos.trend==='rising'||trulos.trend==='up';
+      var isCold=trulos.trend==='falling'||trulos.trend==='down';
+      var aboveMarket=parseFloat(r.grossRpm)>=parseFloat(trulos.rpm);
+      var rpmGap=Math.abs(parseFloat(r.grossRpm)-parseFloat(trulos.rpm)).toFixed(2);
+
+      // Heatmap score 0-100: combo of trend + broker vs market
+      var heatScore=50;
+      if(isHot) heatScore+=25;
+      if(isCold) heatScore-=25;
+      if(aboveMarket) heatScore+=15;
+      else heatScore-=10;
+      heatScore=Math.max(0,Math.min(100,heatScore));
+
+      // Heat label and colors
+      var heatLabel,heatColor,heatBg,heatIcon;
+      if(heatScore>=70){
+        heatLabel='HOT LANE'; heatColor='#f97316'; heatBg='rgba(249,115,22,.12)'; heatIcon='🔥';
+      } else if(heatScore>=45){
+        heatLabel='ACTIVE LANE'; heatColor='#4ade80'; heatBg='rgba(74,222,128,.1)'; heatIcon='✅';
+      } else {
+        heatLabel='SOFT LANE'; heatColor='#60a5fa'; heatBg='rgba(96,165,250,.1)'; heatIcon='❄️';
+      }
+
+      var tc=isHot?'#4ade80':isCold?'#f87171':'#facc15';
+      var ta=isHot?'▲':isCold?'▼':'→';
+
+      mktHtml='<div class="card" style="border:1px solid '+heatColor+';background:'+heatBg+'">'
+        // Heat banner
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<span style="font-size:20px">'+heatIcon+'</span>'
+        +'<div>'
+        +'<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:'+heatColor+'">'+heatLabel+'</div>'
+        +'<div style="font-size:10px;color:var(--muted)">'+origState+' → '+destState+' · '+t.label+'</div>'
+        +'</div></div>'
+        // Heat thermometer bar
+        +'<div style="text-align:right">'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:3px">Lane Heat</div>'
+        +'<div style="width:80px;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden">'
+        +'<div style="width:'+heatScore+'%;height:100%;background:'+heatColor+';border-radius:4px;transition:width .3s"></div>'
+        +'</div>'
+        +'<div style="font-size:10px;color:'+heatColor+';font-weight:700;margin-top:2px">'+heatScore+'/100</div>'
+        +'</div></div>'
+        // Rate data
+        +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
+        +'<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:2px">Market Avg</div>'
+        +'<div style="font-size:16px;font-weight:800;color:#fff">$'+trulos.rpm+'</div>'
+        +'<div style="font-size:10px;color:var(--muted)">/mi</div>'
+        +'</div>'
+        +'<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:2px">Broker Offer</div>'
+        +'<div style="font-size:16px;font-weight:800;color:'+(aboveMarket?'#4ade80':'#fb923c')+'">$'+r.grossRpm+'</div>'
+        +'<div style="font-size:10px;color:'+(aboveMarket?'#4ade80':'#fb923c')+'">'+(aboveMarket?'▲ +$'+rpmGap+' above':'▼ -$'+rpmGap+' below')+'</div>'
+        +'</div>'
+        +'<div style="background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center">'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:2px">Trend</div>'
+        +'<div style="font-size:16px;font-weight:800;color:'+tc+'">'+ta+'</div>'
+        +'<div style="font-size:10px;color:'+tc+'">'+trulos.trend+'</div>'
+        +'</div>'
+        +'</div>'
+        +(trulos.low&&trulos.high?'<div style="font-size:10px;color:var(--muted);margin-top:8px;text-align:center">Rate range: $'+trulos.low+' – $'+trulos.high+'/mi · Source: Trulos</div>':'')
+        +'</div>';
     }
 
     var rec=data.recommendation||r.signal;
