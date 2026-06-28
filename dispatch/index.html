@@ -615,7 +615,7 @@ function fetchEia(){
 
 /* ─── TRULOS ─── */
 function fetchTrulos(){
-  fetch('https://trulos.com/daily/rates-v2/state_rates_trends.json')
+  fetch('/.netlify/functions/trulos?file=state_rates_trends.json')
     .then(function(r){return r.json();}).then(function(d){A.trulosData=d;})
     .catch(function(){});
 }
@@ -1704,7 +1704,7 @@ function renderMarket(){
     document.getElementById('mktUpdated').textContent='Live data · '+new Date().toLocaleDateString();
   } else {
     document.getElementById('mktUpdated').textContent='Loading...';
-    fetch('https://trulos.com/daily/rates-v2/state_rates_trends.json')
+    fetch('/.netlify/functions/trulos?file=state_rates_trends.json')
       .then(function(r){return r.json();}).then(function(d){
         A.trulosData=d; renderMarket();
       }).catch(function(){
