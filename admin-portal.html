@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin Portal | Road Pro Carriers LLC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:#f0f4f8;color:#333;min-height:100vh;display:flex;flex-direction:column}
+#gate{position:fixed;inset:0;background:#0F2D72;display:flex;align-items:center;justify-content:center;z-index:9999}#gate.hidden{display:none}
+.gate-card{background:#fff;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.25);padding:48px 40px;width:100%;max-width:400px;text-align:center}
+.gate-card img{height:50px;margin:0 auto 24px}.gate-card h2{font-family:'Poppins',sans-serif;font-size:22px;color:#0F2D72;margin-bottom:6px}
+.gate-card p{font-size:14px;color:#888;margin-bottom:24px}
+.gate-card input{width:100%;padding:12px 14px;border:1.5px solid #dde3ed;border-radius:8px;font-size:15px;font-family:'Inter',sans-serif;outline:none;margin-bottom:14px;background:#fafbfd}
+.gate-card input:focus{border-color:#2BC4A4}.gate-err{color:#b94000;font-size:13px;margin-bottom:12px;min-height:18px}
+.btn-gate{width:100%;padding:13px;background:#0F2D72;color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-weight:600;font-size:15px;cursor:pointer}.btn-gate:hover{background:#0a2055}
+.admin-header{background:#0F2D72;padding:0 28px;height:66px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.admin-header img{height:40px}.admin-header .title{font-family:'Poppins',sans-serif;font-weight:700;font-size:17px;color:#fff}
+.btn-signout-admin{background:#E8600A;color:#fff;border:none;border-radius:7px;padding:9px 20px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;cursor:pointer}.btn-signout-admin:hover{background:#c45209}
+.tab-bar{background:#fff;border-bottom:2px solid #e4eaf3;display:flex;padding:0 28px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(15,45,114,.06)}
+.tab-btn{padding:16px 22px;border:none;background:none;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;color:#7a8aaa;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}.tab-btn:hover{color:#0F2D72}.tab-btn.active{color:#0F2D72;border-bottom-color:#2BC4A4}
+.admin-main{flex:1;padding:28px;max-width:1200px;margin:0 auto;width:100%}.tab-panel{display:none}.tab-panel.active{display:block}
+.tbl-wrap{background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(15,45,114,.08);overflow:hidden;margin-top:16px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:600px}thead{background:#0F2D72}
+thead th{color:#fff;font-family:'Poppins',sans-serif;font-weight:600;font-size:12.5px;padding:13px 16px;text-align:left;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f0f4f8}.tbody tr:last-child{border-bottom:none}tbody tr:hover{background:#f7f9fc}tbody td{padding:13px 16px;color:#444;vertical-align:middle}
+.toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px}.toolbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.section-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:19px;color:#0F2D72}
+.btn-add{background:#0F2D72;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-family:'Poppins',sans-serif;font-weight:600;font-size:13px;cursor:pointer}.btn-add:hover{background:#0a2055}
+.btn-sm{padding:6px 14px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;font-size:12px;cursor:pointer;border:none}
+.btn-teal{background:#2BC4A4;color:#fff}.btn-teal:hover{background:#24a88c}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;font-family:'Poppins',sans-serif}
+.badge-active{background:#d4f5ed;color:#0f7a5a}.badge-inactive{background:#f5d4d4;color:#7a0f0f}.badge-pending{background:#fff3e0;color:#b96a00}.badge-approved,.badge-final{background:#e0f0ff;color:#0050a0}.badge-paid{background:#d4f5ed;color:#0f7a5a}
+.filter-select{padding:9px 14px;border:1.5px solid #dde3ed;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;color:#333;background:#fff;outline:none;cursor:pointer}.filter-select:focus{border-color:#2BC4A4}
+.empty-state{text-align:center;padding:56px 24px;color:#9aabca;font-size:14px}.loading{text-align:center;padding:40px;color:#9aabca;font-size:14px}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,45,114,.45);display:flex;align-items:center;justify-content:center;z-index:1000;padding:24px}.modal-overlay.hidden{display:none}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:520px;box-shadow:0 8px 40px rgba(15,45,114,.2);max-height:92vh;overflow-y:auto}
+.modal-header{background:#0F2D72;padding:18px 24px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;color:#fff}.modal-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;line-height:1}.modal-close:hover{color:#fff}
+.modal-body{padding:24px}.modal-footer{padding:16px 24px;border-top:1px solid #eef0f5;display:flex;justify-content:flex-end;gap:10px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif;color:#666;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.form-group input,.form-group select{width:100%;padding:10px 13px;border:1.5px solid #dde3ed;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;color:#333;background:#fafbfd;outline:none}.form-group input:focus,.form-group select:focus{border-color:#2BC4A4}
+.modal-success{background:#d4f5ed;border-radius:8px;padding:14px 18px;font-size:13.5px;color:#0f7a5a;margin-bottom:16px;display:none;line-height:1.7}.modal-success.visible{display:block}
+.modal-err{background:#fff0ed;border:1px solid #f7b8a4;border-radius:8px;padding:10px 14px;font-size:13px;color:#b94000;margin-bottom:14px;display:none}.modal-err.visible{display:block}
+.btn-primary{background:#0F2D72;color:#fff;border:none;border-radius:8px;padding:11px 24px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;cursor:pointer}.btn-primary:hover{background:#0a2055}.btn-primary:disabled{background:#9aabca;cursor:not-allowed}
+.btn-cancel{background:#f0f4f8;color:#666;border:none;border-radius:8px;padding:11px 20px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;cursor:pointer}.btn-cancel:hover{background:#e4eaf3}
+.msg-layout{display:grid;grid-template-columns:260px 1fr;gap:16px;height:560px;margin-top:16px}
+.msg-sidebar{background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(15,45,114,.08);overflow-y:auto}
+.driver-item{padding:14px 16px;cursor:pointer;border-bottom:1px solid #f0f4f8;display:flex;align-items:flex-start;gap:10px}.driver-item:hover{background:#f7f9fc}.driver-item.active{background:#eef3ff;border-left:3px solid #2BC4A4;padding-left:13px}
+.driver-item .d-name{font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;color:#0F2D72}.driver-item .d-preview{font-size:12px;color:#888;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:175px}
+.unread-dot{width:9px;height:9px;background:#2BC4A4;border-radius:50%;flex-shrink:0;margin-top:5px}
+.msg-main{background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(15,45,114,.08);display:flex;flex-direction:column;overflow:hidden}
+.msg-main-header{padding:16px 20px;border-bottom:1px solid #f0f4f8;font-family:'Poppins',sans-serif;font-weight:700;font-size:15px;color:#0F2D72;flex-shrink:0}
+.msg-thread{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+.bubble-wrap{display:flex}.bubble-wrap.driver-msg{justify-content:flex-start}.bubble-wrap.hr-msg{justify-content:flex-end}
+.bubble{max-width:68%;padding:10px 15px;border-radius:14px;font-size:14px;line-height:1.5}
+.bubble-wrap.driver-msg .bubble{background:#0F2D72;color:#fff;border-bottom-left-radius:4px}.bubble-wrap.hr-msg .bubble{background:#2BC4A4;color:#fff;border-bottom-right-radius:4px}
+.bubble-time{font-size:11px;opacity:.6;margin-top:3px}.bubble-wrap.driver-msg .bubble-time{text-align:left}.bubble-wrap.hr-msg .bubble-time{text-align:right}
+.msg-compose{padding:14px 16px;border-top:1px solid #f0f4f8;display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
+.msg-compose textarea{flex:1;border:1.5px solid #dde3ed;border-radius:8px;padding:10px 13px;font-family:'Inter',sans-serif;font-size:14px;resize:none;height:56px;outline:none}.msg-compose textarea:focus{border-color:#2BC4A4}
+.btn-send{background:#2BC4A4;color:#fff;border:none;border-radius:8px;padding:11px 20px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;cursor:pointer}.btn-send:hover{background:#24a88c}.btn-send:disabled{background:#9eddd2;cursor:not-allowed}
+.msg-placeholder{flex:1;display:flex;align-items:center;justify-content:center;color:#9aabca;font-size:14px}
+.admin-footer{background:#0F2D72;color:rgba(255,255,255,.4);text-align:center;font-size:12px;padding:14px;flex-shrink:0}
+@media(max-width:768px){.form-row{grid-template-columns:1fr}.msg-layout{grid-template-columns:1fr;height:auto}.admin-main{padding:16px}.tab-btn{padding:14px 12px;font-size:13px}}
+</style></head>
+<body>
+<div id="gate"><div class="gate-card"><img src="images/logo.png" alt="Road Pro Carriers"><h2>Admin Portal</h2><p>Enter your admin password to continue</p><div class="gate-err" id="gateErr"></div><input type="password" id="gatePass" placeholder="Password" autocomplete="current-password"><button class="btn-gate" id="gateBtn">Enter Portal</button></div></div>
+<div id="app" style="display:none;flex-direction:column;flex:1;min-height:100vh">
+<header class="admin-header"><img src="images/logo.png" alt="Road Pro Carriers LLC"><div class="title">Admin Portal</div><button class="btn-signout-admin" id="adminSignOut">Sign Out</button></header>
+<nav class="tab-bar"><button class="tab-btn active" data-tab="drivers">Drivers</button><button class="tab-btn" data-tab="statements">Statements</button><button class="tab-btn" data-tab="messages">Messages</button><button class="tab-btn" data-tab="documents">Documents</button></nav>
+<main class="admin-main">
+<section class="tab-panel active" id="tab-drivers"><div class="toolbar"><div class="section-title">Drivers</div><button class="btn-add" id="addDriverBtn">+ Add Driver</button></div><div class="tbl-wrap" id="driversTableWrap"><div class="loading">Loading drivers…</div></div></section>
+<section class="tab-panel" id="tab-statements"><div class="toolbar"><div class="toolbar-left"><div class="section-title">Pay Statements</div><select class="filter-select" id="stmtFilter"><option value="">All Drivers</option></select></div></div><div class="tbl-wrap" id="statementsTableWrap"><div class="loading">Loading…</div></div></section>
+<section class="tab-panel" id="tab-messages"><div class="section-title" style="margin-bottom:0">Messages</div><div class="msg-layout"><div class="msg-sidebar" id="msgSidebar"><div class="loading">Loading…</div></div><div class="msg-main" id="msgMain"><div class="msg-placeholder">Select a driver to view messages</div></div></div></section>
+<section class="tab-panel" id="tab-documents"><div class="section-title" style="margin-bottom:4px">Documents</div><div class="tbl-wrap" id="docsTableWrap"><div class="loading">Loading…</div></div></section>
+</main>
+<footer class="admin-footer">&copy; 2026 Road Pro Carriers LLC &mdash; Admin Portal</footer>
+</div>
+<div class="modal-overlay hidden" id="addDriverModal"><div class="modal"><div class="modal-header"><h3>Add New Driver</h3><button class="modal-close" id="closeModal">&times;</button></div><div class="modal-body"><div class="modal-success" id="modalSuccess"></div><div class="modal-err" id="modalErr"></div><div class="form-row"><div class="form-group"><label>First Name *</label><input type="text" id="drv_first" placeholder="John"></div><div class="form-group"><label>Last Name *</label><input type="text" id="drv_last" placeholder="Smith"></div></div><div class="form-group"><label>Email *</label><input type="email" id="drv_email" placeholder="driver@example.com"></div><div class="form-group"><label>Phone</label><input type="tel" id="drv_phone" placeholder="555-000-0000"></div><div class="form-row"><div class="form-group"><label>Driver ID *</label><input type="text" id="drv_driverid" placeholder="RPC-001"></div><div class="form-group"><label>Pay Type *</label><select id="drv_paytype"><option value="per_mile">CPM (Per Mile)</option><option value="percentage">Percentage</option><option value="flat_rate">Flat Rate</option></select></div></div><div class="form-group"><label>Rate</label><input type="number" id="drv_rate" step="0.01" placeholder="0.55"></div></div><div class="modal-footer"><button class="btn-cancel" id="cancelModal">Cancel</button><button class="btn-primary" id="submitDriver">Create Driver Account</button></div></div></div>
+<script>
+(function(){
+const PASS='RPC2026Admin',SK='rpc_admin_auth';
+const gate=document.getElementById('gate'),app=document.getElementById('app');
+function showApp(){gate.classList.add('hidden');app.style.display='flex';}
+function showGate(){gate.classList.remove('hidden');app.style.display='none';}
+if(sessionStorage.getItem(SK)==='1'){showApp();initApp();}
+document.getElementById('gateBtn').addEventListener('click',tryLogin);
+document.getElementById('gatePass').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
+function tryLogin(){
+  const v=document.getElementById('gatePass').value;
+  if(v===PASS){sessionStorage.setItem(SK,'1');document.getElementById('gateErr').textContent='';showApp();initApp();}
+  else{document.getElementById('gateErr').textContent='Incorrect password. Try again.';document.getElementById('gatePass').value='';document.getElementById('gatePass').focus();}
+}
+document.getElementById('adminSignOut').addEventListener('click',()=>{sessionStorage.removeItem(SK);showGate();});
+const {createClient}=supabase;
+const sb=createClient('https://rfeakhvcjuidsgrjfubn.supabase.co','sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_');
+let tabLoaded={};
+function initApp(){
+  if(tabLoaded._init)return;tabLoaded._init=true;
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');const tab=btn.dataset.tab;
+      document.getElementById('tab-'+tab).classList.add('active');
+      if(!tabLoaded[tab]){loadTab(tab);tabLoaded[tab]=true;}
+    });
+  });
+  loadTab('drivers');tabLoaded['drivers']=true;initModal();
+}
+function loadTab(t){
+  if(t==='drivers')loadDrivers();
+  else if(t==='statements')loadStatements();
+  else if(t==='messages')loadMsgSidebar();
+  else if(t==='documents')loadDocuments();
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmt(v){const n=parseFloat(v);return isNaN(n)?'—':'$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fmtDate(d){if(!d)return'—';return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function fmtTs(ts){if(!ts)return'';return new Date(ts).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}
+let allDrivers=[];
+async function loadDrivers(){
+  const wrap=document.getElementById('driversTableWrap');
+  const {data,error}=await sb.from('drivers').select('*').order('last_name');
+  if(error){wrap.innerHTML='<div class="empty-state">Error: '+esc(error.message)+'</div>';return;}
+  allDrivers=data||[];populateDriverFilter(allDrivers);
+  if(!allDrivers.length){wrap.innerHTML='<div class="empty-state">No drivers yet. Click + Add Driver to get started.</div>';return;}
+  wrap.innerHTML='<table><thead><tr><th>Driver ID</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Pay Type</th><th>Rate</th><th>Status</th></tr></thead><tbody>'+
+    allDrivers.map(d=>'<tr><td><strong>'+esc(d.driver_id||'—')+'</strong></td><td>'+esc(d.first_name||'')+'</td><td>'+esc(d.last_name||'')+'</td><td>'+esc(d.email||'')+'</td><td>'+esc(d.pay_type||'—')+'</td><td>'+(d.pay_rate?fmt(d.pay_rate):'—')+'</td><td><span class="badge '+(d.is_active?'badge-active':'badge-inactive')+'">'+(d.is_active?'Active':'Inactive')+'</span></td></tr>').join('')+'</tbody></table>';
+}
+function populateDriverFilter(drivers){
+  const sel=document.getElementById('stmtFilter');const cur=sel.value;
+  sel.innerHTML='<option value="">All Drivers</option>'+drivers.map(d=>'<option value="'+d.id+'">'+esc(d.first_name)+' '+esc(d.last_name)+'</option>').join('');
+  if(cur)sel.value=cur;sel.onchange=loadStatements;
+}
+function initModal(){
+  document.getElementById('addDriverBtn').addEventListener('click',()=>{
+    document.getElementById('addDriverModal').classList.remove('hidden');
+    document.getElementById('modalSuccess').classList.remove('visible');
+    document.getElementById('modalErr').classList.remove('visible');
+    ['drv_first','drv_last','drv_email','drv_phone','drv_driverid','drv_rate'].forEach(id=>{document.getElementById(id).value='';});
+  });
+  document.getElementById('closeModal').addEventListener('click',closeModal);
+  document.getElementById('cancelModal').addEventListener('click',closeModal);
+  document.getElementById('addDriverModal').addEventListener('click',e=>{if(e.target.id==='addDriverModal')closeModal();});
+  document.getElementById('submitDriver').addEventListener('click',submitDriver);
+}
+function closeModal(){document.getElementById('addDriverModal').classList.add('hidden');}
+async function submitDriver(){
+  const first=document.getElementById('drv_first').value.trim(),last=document.getElementById('drv_last').value.trim();
+  const email=document.getElementById('drv_email').value.trim(),phone=document.getElementById('drv_phone').value.trim();
+  const driverId=document.getElementById('drv_driverid').value.trim(),payType=document.getElementById('drv_paytype').value;
+  const rate=parseFloat(document.getElementById('drv_rate').value)||null,tempPass='RPC2026Driver';
+  const errEl=document.getElementById('modalErr'),sucEl=document.getElementById('modalSuccess');
+  errEl.classList.remove('visible');sucEl.classList.remove('visible');
+  if(!first||!last||!email||!driverId){errEl.textContent='Please fill in all required fields.';errEl.classList.add('visible');return;}
+  const btn=document.getElementById('submitDriver');btn.disabled=true;btn.textContent='Creating…';
+  const {data:signUpData,error:signUpErr}=await sb.auth.signUp({email,password:tempPass,options:{data:{first_name:first,last_name:last}}});
+  if(signUpErr){errEl.textContent='Auth error: '+signUpErr.message;errEl.classList.add('visible');btn.disabled=false;btn.textContent='Create Driver Account';return;}
+  const authUserId=signUpData?.user?.id||null;
+  const {error:insErr}=await sb.from('drivers').insert({auth_user_id:authUserId,first_name:first,last_name:last,email,phone:phone||null,driver_id:driverId,pay_type:payType,pay_rate:rate,is_active:true});
+  btn.disabled=false;btn.textContent='Create Driver Account';
+  if(insErr){errEl.textContent='DB error: '+insErr.message;errEl.classList.add('visible');return;}
+  sucEl.innerHTML='✔ Driver created!<br><br><strong>Email:</strong> '+esc(email)+'<br><strong>Temp Password:</strong> <code style="background:#c8f0e4;padding:2px 8px;border-radius:4px">RPC2026Driver</code><br><br>Send these to the driver to log in at the driver portal.';
+  sucEl.classList.add('visible');loadDrivers();
+}
+async function loadStatements(){
+  const wrap=document.getElementById('statementsTableWrap');wrap.innerHTML='<div class="loading">Loading…</div>';
+  const filterId=document.getElementById('stmtFilter').value;
+  let q=sb.from('pay_statements').select('*,drivers(first_name,last_name,driver_id)').order('created_at',{ascending:false});
+  if(filterId)q=q.eq('driver_id',filterId);
+  const {data,error}=await q;
+  if(error){wrap.innerHTML='<div class="empty-state">Error: '+esc(error.message)+'</div>';return;}
+  if(!data||!data.length){wrap.innerHTML='<div class="empty-state">No statements found.</div>';return;}
+  wrap.innerHTML='<table><thead><tr><th>Driver</th><th>Driver ID</th><th>Pay Period</th><th>Miles</th><th>Gross</th><th>Deductions</th><th>Net Pay</th><th>Status</th><th>Created</th><th>Update Status</th></tr></thead><tbody>'+
+    data.map(s=>{
+      const drv=s.drivers||{},deds=s.deductions||{};
+      const totalDed=Object.values(deds).reduce((a,b)=>a+parseFloat(b||0),0);
+      const sc={pending:'badge-pending',approved:'badge-approved',final:'badge-approved',paid:'badge-paid'}[s.status]||'badge-pending';
+      return '<tr><td>'+esc((drv.first_name||'')+' '+(drv.last_name||''))+'</td><td>'+esc(drv.driver_id||'—')+'</td><td style="white-space:nowrap">'+fmtDate(s.pay_period_start)+' – '+fmtDate(s.pay_period_end)+'</td><td>'+(s.total_miles||0).toLocaleString()+'</td><td>'+fmt(s.gross_pay)+'</td><td>('+fmt(totalDed)+')</td><td><strong>'+fmt(s.net_pay)+'</strong></td><td><span class="badge '+sc+'">'+esc(s.status||'pending')+'</span></td><td style="white-space:nowrap">'+fmtTs(s.created_at)+'</td><td><select class="filter-select" style="font-size:12px;padding:5px 8px" onchange="updateStatus(''+s.id+'',this.value,this)"><option value="pending"'+(s.status==='pending'?' selected':'')+'>Pending</option><option value="approved"'+(s.status==='approved'?' selected':'')+'>Approved</option><option value="final"'+(s.status==='final'?' selected':'')+'>Final</option><option value="paid"'+(s.status==='paid'?' selected':'')+'>Paid</option></select></td></tr>';
+    }).join('')+'</tbody></table>';
+}
+window.updateStatus=async function(id,status,sel){sel.disabled=true;const {error}=await sb.from('pay_statements').update({status}).eq('id',id);sel.disabled=false;if(error)alert('Error: '+error.message);else loadStatements();};
+let activeMsgDriverId=null;
+async function loadMsgSidebar(){
+  const sidebar=document.getElementById('msgSidebar');sidebar.innerHTML='<div class="loading">Loading…</div>';
+  const {data:msgs,error}=await sb.from('messages').select('driver_id,body,created_at,read,sender,drivers(first_name,last_name)').order('created_at',{ascending:false});
+  if(error){sidebar.innerHTML='<div class="empty-state">Error.</div>';return;}
+  if(!msgs||!msgs.length){sidebar.innerHTML='<div style="padding:24px;text-align:center;color:#9aabca;font-size:13px">No messages yet.</div>';return;}
+  const driverMap={};
+  msgs.forEach(m=>{
+    if(!driverMap[m.driver_id]){driverMap[m.driver_id]={driver_id:m.driver_id,name:m.drivers?(m.drivers.first_name+' '+m.drivers.last_name):'Unknown',preview:m.body,hasUnread:(!m.read&&m.sender==='driver')};}
+    else if(!m.read&&m.sender==='driver'){driverMap[m.driver_id].hasUnread=true;}
+  });
+  sidebar.innerHTML=Object.values(driverMap).map(d=>'<div class="driver-item" data-id="'+d.driver_id+'" onclick="openThread(''+d.driver_id+'',''+esc(d.name).replace(/'/g,'\u0027')+'')">'+
+    (d.hasUnread?'<div class="unread-dot"></div>':'<div style="width:9px;flex-shrink:0"></div>')+
+    '<div><div class="d-name">'+esc(d.name)+'</div><div class="d-preview">'+esc(d.preview)+'</div></div></div>').join('');
+}
+window.openThread=async function(driverId,driverName){
+  activeMsgDriverId=driverId;
+  document.querySelectorAll('.driver-item').forEach(el=>el.classList.toggle('active',el.dataset.id===driverId));
+  const mainEl=document.getElementById('msgMain');
+  mainEl.innerHTML='<div class="msg-main-header">'+esc(driverName)+'</div><div class="msg-thread" id="adminThread"><div class="loading">Loading…</div></div><div class="msg-compose"><textarea id="adminReply" placeholder="Reply to '+esc(driverName)+'…"></textarea><button class="btn-send" id="adminSendBtn">Send</button></div>';
+  document.getElementById('adminSendBtn').addEventListener('click',sendHrReply);
+  document.getElementById('adminReply').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendHrReply();}});
+  await loadThread(driverId);
+  await sb.from('messages').update({read:true}).eq('driver_id',driverId).eq('sender','driver').eq('read',false);
+};
+async function loadThread(driverId){
+  const threadEl=document.getElementById('adminThread');if(!threadEl)return;
+  const {data,error}=await sb.from('messages').select('*').eq('driver_id',driverId).order('created_at',{ascending:true});
+  if(error||!data){if(threadEl)threadEl.innerHTML='<div class="empty-state">Error.</div>';return;}
+  if(!data.length){threadEl.innerHTML='<div style="text-align:center;padding:24px;color:#9aabca;font-size:13px">No messages yet.</div>';return;}
+  threadEl.innerHTML=data.map(m=>{const side=m.sender==='hr'?'hr-msg':'driver-msg';return '<div class="bubble-wrap '+side+'"><div><div class="bubble">'+esc(m.body)+'</div><div class="bubble-time">'+fmtTs(m.created_at)+'</div></div></div>';}).join('');
+  threadEl.scrollTop=threadEl.scrollHeight;
+}
+async function sendHrReply(){
+  if(!activeMsgDriverId)return;const input=document.getElementById('adminReply');const body=input?.value.trim();if(!body)return;
+  const btn=document.getElementById('adminSendBtn');if(btn)btn.disabled=true;
+  const {error}=await sb.from('messages').insert({driver_id:activeMsgDriverId,sender:'hr',body,read:false});
+  if(btn)btn.disabled=false;
+  if(!error){input.value='';await loadThread(activeMsgDriverId);}else alert('Send error: '+error.message);
+}
+async function loadDocuments(){
+  const wrap=document.getElementById('docsTableWrap');
+  const {data,error}=await sb.from('driver_documents').select('*,drivers(first_name,last_name,driver_id)').order('uploaded_at',{ascending:false});
+  if(error){wrap.innerHTML='<div class="empty-state">Error: '+esc(error.message)+'</div>';return;}
+  if(!data||!data.length){wrap.innerHTML='<div class="empty-state">No documents uploaded yet.</div>';return;}
+  wrap.innerHTML='<table><thead><tr><th>Driver Name</th><th>Driver ID</th><th>Document Type</th><th>File Name</th><th>Uploaded</th><th>View</th></tr></thead><tbody>'+
+    data.map(d=>{const drv=d.drivers||{};return '<tr><td>'+esc((drv.first_name||'')+' '+(drv.last_name||''))+'</td><td>'+esc(drv.driver_id||'—')+'</td><td>'+esc(d.doc_type||'—')+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(d.file_name||'')+'">'+esc(d.file_name||'—')+'</td><td style="white-space:nowrap">'+fmtTs(d.uploaded_at)+'</td><td><button class="btn-sm btn-teal" onclick="window.open(''+esc(d.storage_url||'')+'','_blank')">View</button></td></tr>';}).join('')+'</tbody></table>';
+}
+})();
+</script>
+</body></html>
