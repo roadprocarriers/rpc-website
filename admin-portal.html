@@ -181,7 +181,7 @@ async function loadStatements(){
       const drv=s.drivers||{},deds=s.deductions||{};
       const totalDed=Object.values(deds).reduce((a,b)=>a+parseFloat(b||0),0);
       const sc={pending:'badge-pending',approved:'badge-approved',final:'badge-approved',paid:'badge-paid'}[s.status]||'badge-pending';
-      return '<tr><td>'+esc((drv.first_name||'')+' '+(drv.last_name||''))+'</td><td>'+esc(drv.driver_id||'—')+'</td><td style="white-space:nowrap">'+fmtDate(s.pay_period_start)+' – '+fmtDate(s.pay_period_end)+'</td><td>'+(s.total_miles||0).toLocaleString()+'</td><td>'+fmt(s.gross_pay)+'</td><td>('+fmt(totalDed)+')</td><td><strong>'+fmt(s.net_pay)+'</strong></td><td><span class="badge '+sc+'">'+esc(s.status||'pending')+'</span></td><td style="white-space:nowrap">'+fmtTs(s.created_at)+'</td><td><select class="filter-select" style="font-size:12px;padding:5px 8px" onchange="updateStatus(''+s.id+'',this.value,this)"><option value="pending"'+(s.status==='pending'?' selected':'')+'>Pending</option><option value="approved"'+(s.status==='approved'?' selected':'')+'>Approved</option><option value="final"'+(s.status==='final'?' selected':'')+'>Final</option><option value="paid"'+(s.status==='paid'?' selected':'')+'>Paid</option></select></td></tr>';
+      return '<tr><td>'+esc((drv.first_name||'')+' '+(drv.last_name||''))+'</td><td>'+esc(drv.driver_id||'—')+'</td><td style="white-space:nowrap">'+fmtDate(s.pay_period_start)+' – '+fmtDate(s.pay_period_end)+'</td><td>'+(s.total_miles||0).toLocaleString()+'</td><td>'+fmt(s.gross_pay)+'</td><td>('+fmt(totalDed)+')</td><td><strong>'+fmt(s.net_pay)+'</strong></td><td><span class="badge '+sc+'">'+esc(s.status||'pending')+'</span></td><td style="white-space:nowrap">'+fmtTs(s.created_at)+'</td><td><select class="filter-select" style="font-size:12px;padding:5px 8px" onchange="updateStatus('\''+s.id+'\'',this.value,this)"><option value="pending"'+(s.status==='pending'?' selected':'')+'>Pending</option><option value="approved"'+(s.status==='approved'?' selected':'')+'>Approved</option><option value="final"'+(s.status==='final'?' selected':'')+'>Final</option><option value="paid"'+(s.status==='paid'?' selected':'')+'>Paid</option></select></td></tr>';
     }).join('')+'</tbody></table>';
 }
 window.updateStatus=async function(id,status,sel){sel.disabled=true;const {error}=await sb.from('pay_statements').update({status}).eq('id',id);sel.disabled=false;if(error)alert('Error: '+error.message);else loadStatements();};
@@ -196,7 +196,7 @@ async function loadMsgSidebar(){
     if(!driverMap[m.driver_id]){driverMap[m.driver_id]={driver_id:m.driver_id,name:m.drivers?(m.drivers.first_name+' '+m.drivers.last_name):'Unknown',preview:m.body,hasUnread:(!m.read&&m.sender==='driver')};}
     else if(!m.read&&m.sender==='driver'){driverMap[m.driver_id].hasUnread=true;}
   });
-  sidebar.innerHTML=Object.values(driverMap).map(d=>'<div class="driver-item" data-id="'+d.driver_id+'" onclick="openThread(''+d.driver_id+'',''+esc(d.name).replace(/'/g,'\u0027')+'')">'+
+  sidebar.innerHTML=Object.values(driverMap).map(d=>'<div class="driver-item" data-id="'+d.driver_id+'" onclick="openThread('\''+d.driver_id+'\'','\''+esc(d.name).replace(/'/g,'\u0027')+'\'')">'+
     (d.hasUnread?'<div class="unread-dot"></div>':'<div style="width:9px;flex-shrink:0"></div>')+
     '<div><div class="d-name">'+esc(d.name)+'</div><div class="d-preview">'+esc(d.preview)+'</div></div></div>').join('');
 }
@@ -231,7 +231,7 @@ async function loadDocuments(){
   if(error){wrap.innerHTML='<div class="empty-state">Error: '+esc(error.message)+'</div>';return;}
   if(!data||!data.length){wrap.innerHTML='<div class="empty-state">No documents uploaded yet.</div>';return;}
   wrap.innerHTML='<table><thead><tr><th>Driver Name</th><th>Driver ID</th><th>Document Type</th><th>File Name</th><th>Uploaded</th><th>View</th></tr></thead><tbody>'+
-    data.map(d=>{const drv=d.drivers||{};return '<tr><td>'+esc((drv.first_name||'')+' '+(drv.last_name||''))+'</td><td>'+esc(drv.driver_id||'—')+'</td><td>'+esc(d.doc_type||'—')+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(d.file_name||'')+'">'+esc(d.file_name||'—')+'</td><td style="white-space:nowrap">'+fmtTs(d.uploaded_at)+'</td><td><button class="btn-sm btn-teal" onclick="window.open(''+esc(d.storage_url||'')+'','_blank')">View</button></td></tr>';}).join('')+'</tbody></table>';
+    data.map(d=>{const drv=d.drivers||{};return '<tr><td>'+esc((drv.first_name||'')+' '+(drv.last_name||''))+'</td><td>'+esc(drv.driver_id||'—')+'</td><td>'+esc(d.doc_type||'—')+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(d.file_name||'')+'">'+esc(d.file_name||'—')+'</td><td style="white-space:nowrap">'+fmtTs(d.uploaded_at)+'</td><td><button class="btn-sm btn-teal" onclick="window.open('\''+esc(d.storage_url||'')+'\'','_blank')">View</button></td></tr>';}).join('')+'</tbody></table>';
 }
 })();
 </script>
