@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPC Driver Pay Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0F2D72;--teal:#2BC4A4;--orange:#E8600A;
+  --navy-light:#EEF3FC;--bg:#f8f9fc;--surface:#fff;
+  --border:#e2e6ef;--text:#1a2236;--muted:#6b7a99;
+  --green:#15803d;--green-bg:#dcfce7;--yellow-bg:#fef9c3;--yellow:#854d0e;
+  --red:#b91c1c;--red-bg:#fef2f2;
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+.hdr{background:var(--navy);padding:14px 24px;display:flex;align-items:center;gap:16px;}
+.logo{font-size:30px;font-weight:700;color:#fff;letter-spacing:3px;line-height:1;}
+.logo .t{color:var(--teal);}.logo .o{color:var(--orange);}
+.logo-sub{font-size:8px;letter-spacing:3px;color:rgba(255,255,255,0.45);margin-top:3px;}
+.hdr-title{margin-left:auto;text-align:right;}
+.hdr-title h1{font-size:15px;font-weight:600;color:#fff;}
+.hdr-title p{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;}
+.tabs{display:flex;gap:0;background:var(--navy);padding:0 24px;border-top:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;}
+.tab{padding:10px 16px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.55);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;}
+.tab:hover{color:rgba(255,255,255,0.85);}
+.tab.active{color:#fff;border-bottom-color:var(--teal);}
+.content{padding:20px 24px;max-width:1300px;margin:0 auto;}
+.sec{display:none;}.sec.active{display:block;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;}
+.card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px;}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px;}
+.fg.wide{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
+.f{display:flex;flex-direction:column;gap:5px;}
+.f label{font-size:12px;font-weight:500;color:var(--muted);}
+.f input,.f select{font-size:13px;border:1px solid var(--border);border-radius:7px;padding:8px 11px;background:#fff;color:var(--text);transition:border .15s;}
+.f input:focus,.f select:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(15,45,114,.08);}
+.hint{font-size:11px;color:var(--muted);margin-top:3px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);transition:all .15s;}
+.btn:hover{background:#f1f3f9;}
+.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btn.primary:hover{opacity:.9;}
+.btn.teal{background:var(--teal);color:#fff;border-color:var(--teal);}
+.btn.teal:hover{opacity:.9;}
+.btn.sm{padding:5px 12px;font-size:12px;}
+.btn.danger{background:var(--red-bg);color:var(--red);border-color:#fca5a5;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.ptoggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content;margin-bottom:14px;}
+.ptoggle button{padding:8px 18px;font-size:13px;font-weight:500;border:none;background:#f8f9fc;color:var(--muted);cursor:pointer;border-right:1px solid var(--border);}
+.ptoggle button:last-child{border-right:none;}
+.ptoggle button.active{background:var(--navy);color:#fff;}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;font-size:11px;font-weight:600;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;background:#f8f9fc;}
+td{padding:8px 10px;border-bottom:1px solid #f0f3f8;color:var(--text);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f8f9fc;}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:3px 8px;border-radius:999px;white-space:nowrap;}
+.badge.done{background:var(--green-bg);color:var(--green);}
+.badge.pend{background:var(--yellow-bg);color:var(--yellow);}
+.badge.truck{background:#e0f2fe;color:#0369a1;}
+.badge.manual{background:#f3f4f6;color:#6b7280;}
+.badge.acc{background:#f3e8ff;color:#7c3aed;}
+.map-container{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:12px;}
+#route-map{height:300px;width:100%;}
+.map-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.addr-input-wrap{position:relative;}
+.addr-input-wrap input{width:100%;padding:9px 36px 9px 11px;font-size:13px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--text);}
+.addr-input-wrap input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(15,45,114,.08);}
+.addr-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;}
+.suggestions{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:7px;z-index:1000;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.1);margin-top:2px;}
+.suggestion-item{padding:9px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f3f8;}
+.suggestion-item:last-child{border-bottom:none;}
+.suggestion-item:hover{background:var(--navy-light);}
+.miles-result{background:var(--navy-light);border:1px solid rgba(15,45,114,.15);border-radius:8px;padding:10px 16px;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
+.miles-result .miles-val{font-size:22px;font-weight:700;color:var(--navy);}
+.miles-result .miles-lbl{font-size:11px;color:var(--muted);margin-top:1px;}
+.miles-result .miles-badge{font-size:11px;background:var(--green-bg);color:var(--green);padding:3px 10px;border-radius:999px;font-weight:600;}
+.truckrouter-link{font-size:12px;color:var(--teal);text-decoration:none;display:inline-flex;align-items:center;gap:4px;font-weight:500;}
+.pay-prev{background:var(--navy-light);border:1px solid rgba(15,45,114,.15);border-radius:8px;padding:10px 16px;font-size:13px;color:var(--navy);display:none;margin-bottom:12px;}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:16px;}
+.metric{background:#f8f9fc;border-radius:8px;padding:12px 14px;border:1px solid var(--border);}
+.metric .lbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.metric .val{font-size:20px;font-weight:700;color:var(--navy);}
+.dr-card{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f8f9fc;border:1px solid var(--border);border-radius:9px;margin-bottom:8px;}
+.info-bar{background:var(--navy-light);border:1px solid rgba(15,45,114,.15);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--navy);margin-bottom:14px;display:flex;align-items:flex-start;gap:8px;}
+.api-setup{background:#fffbeb;border:1px solid #fcd34d;border-radius:9px;padding:14px 18px;margin-bottom:16px;}
+.api-setup h3{font-size:13px;font-weight:600;color:#92400e;margin-bottom:6px;}
+.api-setup p{font-size:12px;color:#78350f;margin-bottom:10px;line-height:1.6;}
+.api-key-row{display:flex;gap:8px;align-items:center;}
+.api-key-row input{flex:1;font-size:13px;border:1px solid #fcd34d;border-radius:7px;padding:8px 11px;background:#fff;font-family:monospace;}
+/* YTD BANNER */
+.ytd-banner{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;}
+.ytd-card{background:var(--navy);border-radius:10px;padding:14px 18px;}
+.ytd-card .lbl{font-size:10px;color:rgba(255,255,255,.55);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.ytd-card .val{font-size:22px;font-weight:700;color:#fff;}
+.ytd-card .sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+.ytd-card.teal{background:var(--teal);}
+.ytd-card.orange{background:var(--orange);}
+/* STMT */
+.stmt-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:16px;}
+.stmt-hdr{background:var(--navy);padding:20px 26px;display:flex;justify-content:space-between;align-items:flex-start;}
+.stmt-logo{font-size:26px;font-weight:700;color:#fff;letter-spacing:3px;line-height:1;}
+.stmt-logo .t{color:var(--teal);}.stmt-logo .o{color:var(--orange);}
+.stmt-co{font-size:8px;letter-spacing:3px;color:rgba(255,255,255,0.45);margin-top:3px;}
+.stmt-co-info{margin-top:10px;font-size:11px;color:rgba(255,255,255,.65);line-height:1.9;}
+.stmt-meta{text-align:right;font-size:11px;color:rgba(255,255,255,.65);line-height:1.9;}
+.stmt-meta strong{font-size:15px;font-weight:600;color:#fff;display:block;margin-bottom:6px;}
+.stmt-body{padding:20px 26px;background:#fff;}
+.stmt-driver-bar{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid #e8edf5;margin-bottom:16px;flex-wrap:wrap;gap:12px;}
+.stmt-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px;margin-top:14px;}
+.stmt-totals{background:var(--navy);border-radius:9px;padding:16px 20px;margin-top:4px;}
+.stmt-totals-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;}
+.stmt-totals-row .lbl{font-size:12px;color:rgba(255,255,255,.65);}
+.stmt-totals-row .amt{font-size:15px;font-weight:600;color:rgba(255,255,255,.85);}
+.stmt-divider{border:none;border-top:1px solid rgba(255,255,255,.2);margin:8px 0;}
+.stmt-net{display:flex;justify-content:space-between;align-items:center;}
+.stmt-net .lbl{font-size:14px;font-weight:600;color:#fff;}
+.stmt-net .sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;}
+.stmt-net .amt{font-size:28px;font-weight:700;color:#fff;}
+.stmt-footer{text-align:center;font-size:10px;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid #f0f3f8;}
+/* YTD section in stmt */
+.ytd-stmt{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.ytd-stmt-card{background:#f8f9fc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;}
+.ytd-stmt-card .l{font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.ytd-stmt-card .v{font-size:16px;font-weight:700;color:var(--navy);margin-top:3px;}
+.empty{text-align:center;padding:20px;color:var(--muted);font-size:13px;}
+.pcm-btn{padding:8px 14px;font-size:13px;font-weight:500;border-radius:7px;border:1px solid var(--teal);color:var(--teal);background:transparent;cursor:pointer;white-space:nowrap;}
+.pcm-btn:hover{background:#e6faf6;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="logo">R<span class="t">P</span>C<span class="o">.</span></div>
+    <div class="logo-sub">ROAD PRO CARRIERS</div>
+  </div>
+  <div class="hdr-title">
+    <h1>Driver Pay Dashboard</h1>
+    <p>Road Pro Carriers LLC</p>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="sw('setup')">⚙ Setup</div>
+  <div class="tab" onclick="sw('drivers')">👤 Drivers</div>
+  <div class="tab" onclick="sw('loads')">🚛 Loads</div>
+  <div class="tab" onclick="sw('accessorials')">➕ Accessorials</div>
+  <div class="tab" onclick="sw('deductions')">➖ Deductions</div>
+  <div class="tab" onclick="sw('statement')">📄 Pay Statement</div>
+</div>
+
+<div class="content">
+
+<!-- SETUP -->
+<div id="tab-setup" class="sec active">
+  <div class="card">
+    <div class="card-title">HERE Truck Routing API Key</div>
+    <div class="api-setup">
+      <h3>⚠ Free API Key Required for Live Truck Miles</h3>
+      <p>HERE provides <strong>free truck routing</strong> — no credit card needed.<br>
+      1. Go to <a href="https://platform.here.com" target="_blank" style="color:#0369a1;">platform.here.com</a> → Access Manager → Apps → Create new app → Create API key<br>
+      2. Copy the key and paste it below — saves automatically in your browser</p>
+      <div class="api-key-row">
+        <input type="text" id="here-key" placeholder="Paste your HERE API key here..."/>
+        <button class="btn primary" onclick="saveKey()">Save Key</button>
+        <button class="btn" onclick="testKey()">Test Connection</button>
+      </div>
+      <div id="key-status" style="font-size:12px;margin-top:8px;"></div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);">Your key is stored only in this browser. It is never sent anywhere except directly to HERE's servers to calculate mileage.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">How It Works</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+      <div style="background:#f8f9fc;border-radius:9px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;">🗺 Interactive Map</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Type any US city or address. Map shows your truck route drawn live.</div>
+      </div>
+      <div style="background:#f8f9fc;border-radius:9px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px;">🚛 Truck Mileage</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Commercial truck routing — accounts for truck restrictions, bridge heights, and weight limits.</div>
+      </div>
+      <div style="background:#f8f9fc;border-radius:9px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:600;color:var(--teal);margin-bottom:6px;">✓ TruckRouter Verify</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Every load has a one-click link to verify the lane on TruckRouter.com independently.</div>
+      </div>
+      <div style="background:#f8f9fc;border-radius:9px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:6px;">📊 YTD Tracking</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7;">Year-to-date miles, loads, gross pay, and net pay tracked automatically per driver.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DRIVERS -->
+<div id="tab-drivers" class="sec">
+  <div class="card">
+    <div class="card-title">Add Driver</div>
+    <div class="fg">
+      <div class="f"><label>First Name</label><input type="text" id="d-first" placeholder="John"/></div>
+      <div class="f"><label>Last Name</label><input type="text" id="d-last" placeholder="Smith"/></div>
+      <div class="f"><label>Driver ID</label><input type="text" id="d-id" placeholder="RPC-001"/></div>
+    </div>
+    <div class="f" style="margin-bottom:10px;"><label>Pay Structure</label></div>
+    <div class="ptoggle">
+      <button class="active" id="pt-cpm" onclick="setPT('cpm')">CPM — Cents Per Mile</button>
+      <button id="pt-pct" onclick="setPT('pct')">% of Load</button>
+      <button id="pt-flat" onclick="setPT('flat')">Flat Rate / Load</button>
+    </div>
+    <div class="fg">
+      <div class="f">
+        <label id="rl">Rate (cents per mile)</label>
+        <input type="number" id="d-rate" placeholder="65" step="0.1"/>
+        <div class="hint" id="rh">e.g. 65 = $0.65/mile</div>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn primary" onclick="addDriver()">+ Add Driver</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Driver Roster</div>
+    <div id="drivers-list"><div class="empty">No drivers added yet.</div></div>
+  </div>
+</div>
+
+<!-- LOADS -->
+<div id="tab-loads" class="sec">
+  <div class="card">
+    <div class="card-title">Route & Mileage</div>
+    <div class="info-bar">
+      <span>ℹ</span>
+      <span>Type origin and destination below, select from the dropdown, then click <strong>Calculate Truck Miles</strong> for accurate commercial routing. Use <strong>Verify on TruckRouter</strong> to double-check any lane.</span>
+    </div>
+    <div class="map-controls">
+      <div class="f">
+        <label>Origin Address</label>
+        <div class="addr-input-wrap">
+          <input type="text" id="l-orig" placeholder="e.g. Charlotte, NC" autocomplete="off" oninput="debounceGeo('orig')"/>
+          <button class="addr-clear" onclick="clearAddr('orig')">×</button>
+          <div class="suggestions" id="orig-suggestions" style="display:none;"></div>
+        </div>
+      </div>
+      <div class="f">
+        <label>Destination Address</label>
+        <div class="addr-input-wrap">
+          <input type="text" id="l-dest" placeholder="e.g. Atlanta, GA" autocomplete="off" oninput="debounceGeo('dest')"/>
+          <button class="addr-clear" onclick="clearAddr('dest')">×</button>
+          <div class="suggestions" id="dest-suggestions" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row" style="margin-bottom:12px;">
+      <button class="pcm-btn" id="calc-btn" onclick="calcTruckMiles()">🚛 Calculate Truck Miles</button>
+      <a id="truckrouter-link" class="truckrouter-link" href="#" target="_blank" style="display:none;">↗ Verify on TruckRouter.com</a>
+    </div>
+    <div class="miles-result" id="miles-result">
+      <div>
+        <div class="miles-val" id="miles-display">0</div>
+        <div class="miles-lbl">Truck Miles — Commercial Routing</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        <span class="miles-badge">✓ Mileage Verified</span>
+        <a id="truckrouter-link2" class="truckrouter-link" href="#" target="_blank">↗ Double-check on TruckRouter</a>
+      </div>
+    </div>
+    <div class="map-container"><div id="route-map"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Load Details</div>
+    <div class="fg">
+      <div class="f"><label>Driver</label><select id="l-driver" onchange="updPrev()"><option value="">Select driver...</option></select></div>
+      <div class="f"><label>Pay Week</label><select id="l-week"><option value="">Select pay week...</option></select></div>
+      <div class="f"><label>Load #</label><input type="text" id="l-load" placeholder="LD-2026-001"/></div>
+      <div class="f"><label>Date</label><input type="date" id="l-date"/></div>
+      <div class="f"><label>Status</label><select id="l-status"><option value="completed">Completed</option><option value="pending">Pending</option></select></div>
+    </div>
+    <div class="fg">
+      <div class="f">
+        <label>Miles</label>
+        <input type="number" id="l-miles" placeholder="Use map above or enter manually" oninput="updPrev()"/>
+        <div class="hint" id="miles-src-hint">Calculate from map or enter manually</div>
+      </div>
+      <div class="f"><label>Load Value ($)</label><input type="number" id="l-val" placeholder="1200.00" step="0.01" oninput="updPrev()"/></div>
+    </div>
+    <div class="pay-prev" id="pay-prev"></div>
+    <div class="btn-row"><button class="btn primary" onclick="addLoad()">+ Add Load</button></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Load Log</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Load #</th><th>Driver</th><th>Week</th><th>Origin</th><th>Destination</th><th>Miles</th><th>Driver Pay</th><th>Date</th><th>Verify</th><th></th></tr></thead>
+        <tbody id="loads-body"><tr><td colspan="10" class="empty">No loads entered yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ACCESSORIALS -->
+<div id="tab-accessorials" class="sec">
+  <div class="card">
+    <div class="card-title">Add Accessorial / Reimbursement / Additional Pay</div>
+    <div class="info-bar">
+      <span>ℹ</span>
+      <span>Use this tab for any additional pay that is NOT part of a load — detention, layover, fuel reimbursement, scale tickets, lumper reimbursement, bonus, stop pay, tarp pay, etc. These are added to the driver's gross pay on the statement.</span>
+    </div>
+    <div class="fg wide">
+      <div class="f"><label>Driver</label><select id="acc-driver"><option value="">Select driver...</option></select></div>
+      <div class="f"><label>Pay Week</label><select id="acc-week"><option value="">Select pay week...</option></select></div>
+      <div class="f"><label>Type</label>
+        <select id="acc-type">
+          <option>Detention Pay</option>
+          <option>Layover Pay</option>
+          <option>Fuel Reimbursement</option>
+          <option>Lumper Reimbursement</option>
+          <option>Scale Ticket</option>
+          <option>Stop Pay</option>
+          <option>Tarp Pay</option>
+          <option>Bonus</option>
+          <option>Deadhead Pay</option>
+          <option>Other Reimbursement</option>
+          <option>Other Additional Pay</option>
+        </select>
+      </div>
+      <div class="f"><label>Description</label><input type="text" id="acc-desc" placeholder="e.g. 4hr detention at Walmart DC"/></div>
+      <div class="f"><label>Amount ($)</label><input type="number" id="acc-amt" placeholder="0.00" step="0.01"/></div>
+    </div>
+    <div class="btn-row"><button class="btn primary" onclick="addAcc()">+ Add</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Accessorials & Additional Pay Log</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Driver</th><th>Week</th><th>Type</th><th>Description</th><th>Amount</th><th></th></tr></thead>
+        <tbody id="acc-body"><tr><td colspan="6" class="empty">No accessorials or additional pay entered yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- DEDUCTIONS -->
+<div id="tab-deductions" class="sec">
+  <div class="card">
+    <div class="card-title">Add Deduction</div>
+    <div class="fg wide">
+      <div class="f"><label>Driver</label><select id="ded-driver"><option value="">Select driver...</option></select></div>
+      <div class="f"><label>Pay Week</label><select id="ded-week"><option value="">Select pay week...</option></select></div>
+      <div class="f"><label>Type</label>
+        <select id="ded-type">
+          <option>Fuel Advance</option><option>Insurance</option><option>Escrow</option>
+          <option>Truck Lease</option><option>ELD Fee</option><option>Occupational Accident</option><option>Other</option>
+        </select>
+      </div>
+      <div class="f"><label>Description (optional)</label><input type="text" id="ded-desc" placeholder="Brief note"/></div>
+      <div class="f"><label>Amount ($)</label><input type="number" id="ded-amt" placeholder="0.00" step="0.01"/></div>
+    </div>
+    <div class="btn-row"><button class="btn primary" onclick="addDed()">+ Add Deduction</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Deduction Log</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Driver</th><th>Week</th><th>Type</th><th>Description</th><th>Amount</th><th></th></tr></thead>
+        <tbody id="ded-body"><tr><td colspan="6" class="empty">No deductions yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- STATEMENT -->
+<div id="tab-statement" class="sec">
+  <div class="card">
+    <div class="card-title">Generate Pay Statement</div>
+    <div class="fg">
+      <div class="f"><label>Driver</label><select id="s-driver" onchange="updYTD()"><option value="">Select driver...</option></select></div>
+      <div class="f"><label>Pay Week</label><select id="s-week"><option value="">Select pay week...</option></select></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="genStmt()">📄 Generate Statement</button>
+      <button class="btn teal" onclick="dlStmt()">⬇ Download / Print</button>
+    </div>
+  </div>
+
+  <!-- YTD SUMMARY -->
+  <div id="ytd-section" style="display:none;">
+    <div class="card">
+      <div class="card-title">📊 Year-to-Date Summary</div>
+      <div class="ytd-banner" id="ytd-banner"></div>
+    </div>
+  </div>
+
+  <div id="stmt-out"></div>
+</div>
+
+</div>
+
+<script>
+let drivers=[], loads=[], accs=[], deds=[], curPT='cpm', lastStmt=null;
+let origCoords=null, destCoords=null, routeLayer=null, markersLayer=null;
+let geoTimers={}, milesSource='Manual';
+let map;
+
+// ── MAP ──────────────────────────────────────────────────────
+function initMap(){
+  if(map)return;
+  map=L.map('route-map',{zoomControl:true}).setView([39.5,-98.35],4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(map);
+  markersLayer=L.layerGroup().addTo(map);
+}
+
+// ── PAY WEEKS Fri–Sat ────────────────────────────────────────
+function genWeeks(){
+  const weeks=[];
+  const now=new Date();
+  const diffToSat=((6-now.getDay())+7)%7;
+  let sat=new Date(now); sat.setDate(now.getDate()+diffToSat);
+  const fmt=d=>{const m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'),y=d.getFullYear();return`${m}/${dd}/${y}`;};
+  const iso=d=>d.toISOString().split('T')[0];
+  for(let i=0;i<52;i++){
+    let fri=new Date(sat); fri.setDate(sat.getDate()-6);
+    weeks.push({label:`${fmt(fri)} — ${fmt(sat)}`,start:iso(fri),end:iso(sat)});
+    sat.setDate(sat.getDate()-7);
+  }
+  return weeks;
+}
+const WEEKS=genWeeks();
+
+function populateWeekSels(){
+  ['l-week','acc-week','ded-week','s-week'].forEach(id=>{
+    const s=document.getElementById(id);if(!s)return;
+    const v=s.value;
+    s.innerHTML='<option value="">Select pay week...</option>'+WEEKS.map((w,i)=>`<option value="${i}">${w.label}</option>`).join('');
+    if(v!=='')s.value=v; else if(id!=='ded-week'&&id!=='acc-week')s.value='0';
+  });
+}
+function populateDriverSels(){
+  ['l-driver','acc-driver','ded-driver','s-driver'].forEach(id=>{
+    const s=document.getElementById(id);if(!s)return;
+    const v=s.value;
+    s.innerHTML='<option value="">Select driver...</option>'+drivers.map((d,i)=>`<option value="${i}">${d.first} ${d.last} (${d.id})</option>`).join('');
+    s.value=v;
+  });
+}
+
+// ── TABS ─────────────────────────────────────────────────────
+function sw(t){
+  const names=['setup','drivers','loads','accessorials','deductions','statement'];
+  names.forEach((n,i)=>{
+    document.querySelectorAll('.tab')[i].classList.toggle('active',n===t);
+    document.getElementById('tab-'+n).classList.toggle('active',n===t);
+  });
+  if(t==='loads'){populateDriverSels();populateWeekSels();setTimeout(()=>initMap(),100);}
+  if(['accessorials','deductions','statement'].includes(t)){populateDriverSels();populateWeekSels();}
+}
+
+// ── API KEY ──────────────────────────────────────────────────
+function getKey(){return localStorage.getItem('here_api_key')||'';}
+function saveKey(){
+  const k=document.getElementById('here-key').value.trim();
+  if(!k){alert('Please paste your HERE API key.');return;}
+  localStorage.setItem('here_api_key',k);
+  document.getElementById('key-status').innerHTML='<span style="color:var(--green);font-weight:600;">✓ Key saved.</span>';
+}
+function testKey(){
+  const k=getKey()||document.getElementById('here-key').value.trim();
+  if(!k){alert('Enter your key first.');return;}
+  document.getElementById('key-status').innerHTML='Testing...';
+  fetch(`https://geocode.search.hereapi.com/v1/geocode?q=Charlotte,NC&apiKey=${k}`)
+    .then(r=>r.json()).then(d=>{
+      if(d.items&&d.items.length>0) document.getElementById('key-status').innerHTML='<span style="color:var(--green);font-weight:600;">✓ Connection successful! Key is valid.</span>';
+      else document.getElementById('key-status').innerHTML='<span style="color:var(--red);">⚠ Key may be invalid.</span>';
+    }).catch(()=>document.getElementById('key-status').innerHTML='<span style="color:var(--red);">⚠ Connection failed. Check your API key.</span>');
+}
+window.addEventListener('load',()=>{
+  const k=getKey();
+  if(k){document.getElementById('here-key').value=k;document.getElementById('key-status').innerHTML='<span style="color:var(--green);">✓ Key loaded from browser storage.</span>';}
+  populateWeekSels();
+  document.getElementById('l-date').value=new Date().toISOString().split('T')[0];
+});
+
+// ── ADDRESS AUTOCOMPLETE ─────────────────────────────────────
+function debounceGeo(side){clearTimeout(geoTimers[side]);geoTimers[side]=setTimeout(()=>fetchSugg(side),400);}
+async function fetchSugg(side){
+  const q=document.getElementById('l-'+side).value.trim();
+  const el=document.getElementById(side+'-suggestions');
+  if(q.length<3){el.style.display='none';return;}
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=us&limit=6`);
+    const data=await r.json();
+    if(!data.length){el.style.display='none';return;}
+    el.innerHTML=data.map(item=>`<div class="suggestion-item" onclick="selectAddr('${side}','${item.display_name.replace(/'/g,"\\'")}',${item.lat},${item.lon})">${item.display_name}</div>`).join('');
+    el.style.display='block';
+  }catch(e){el.style.display='none';}
+}
+function selectAddr(side,name,lat,lon){
+  document.getElementById('l-'+side).value=name;
+  document.getElementById(side+'-suggestions').style.display='none';
+  if(side==='orig') origCoords={lat:parseFloat(lat),lon:parseFloat(lon),name};
+  else destCoords={lat:parseFloat(lat),lon:parseFloat(lon),name};
+  updateMarkers();
+  if(origCoords&&destCoords) updateTRLink();
+}
+function clearAddr(side){
+  document.getElementById('l-'+side).value='';
+  document.getElementById(side+'-suggestions').style.display='none';
+  if(side==='orig') origCoords=null; else destCoords=null;
+  updateMarkers();
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.addr-input-wrap')) document.querySelectorAll('.suggestions').forEach(s=>s.style.display='none');});
+
+// ── MAP MARKERS ──────────────────────────────────────────────
+const mkIcon=c=>L.divIcon({className:'',html:`<div style="background:${c};width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);"></div>`,iconSize:[14,14],iconAnchor:[7,7]});
+function updateMarkers(){
+  initMap(); markersLayer.clearLayers();
+  if(origCoords) L.marker([origCoords.lat,origCoords.lon],{icon:mkIcon('#0F2D72')}).bindPopup(`<b>Origin</b><br>${origCoords.name}`).addTo(markersLayer);
+  if(destCoords) L.marker([destCoords.lat,destCoords.lon],{icon:mkIcon('#E8600A')}).bindPopup(`<b>Destination</b><br>${destCoords.name}`).addTo(markersLayer);
+  if(origCoords&&destCoords) map.fitBounds([[origCoords.lat,origCoords.lon],[destCoords.lat,destCoords.lon]],{padding:[40,40]});
+  else if(origCoords) map.setView([origCoords.lat,origCoords.lon],8);
+}
+function updateTRLink(){
+  if(!origCoords||!destCoords)return;
+  const o=document.getElementById('l-orig').value.split(',')[0].trim();
+  const d=document.getElementById('l-dest').value.split(',')[0].trim();
+  const url=`https://www.truckrouter.com/#${encodeURIComponent(o)}|${encodeURIComponent(d)}`;
+  ['truckrouter-link','truckrouter-link2'].forEach(id=>{const el=document.getElementById(id);if(el){el.href=url;el.style.display='inline-flex';}});
+}
+
+// ── HERE TRUCK MILES ─────────────────────────────────────────
+async function calcTruckMiles(){
+  if(!origCoords||!destCoords){alert('Select both origin and destination from the dropdown suggestions first.');return;}
+  const key=getKey();
+  if(!key){alert('Add your HERE API key in the Setup tab first.');sw('setup');return;}
+  const btn=document.getElementById('calc-btn');
+  btn.textContent='Calculating...';btn.disabled=true;
+  try{
+    const url=`https://router.hereapi.com/v8/routes?transportMode=truck&origin=${origCoords.lat},${origCoords.lon}&destination=${destCoords.lat},${destCoords.lon}&return=summary,polyline&truck[grossWeight]=36287&truck[height]=408&truck[width]=260&truck[length]=2200&apikey=${key}`;
+    const r=await fetch(url);
+    const data=await r.json();
+    if(!data.routes||!data.routes.length)throw new Error('No route');
+    const meters=data.routes[0].sections[0].summary.length;
+    const miles=Math.round(meters*0.000621371);
+    if(routeLayer){map.removeLayer(routeLayer);}
+    try{
+      const pts=decodeFlexPolyline(data.routes[0].sections[0].polyline);
+      routeLayer=L.polyline(pts,{color:'#0F2D72',weight:5,opacity:.8}).addTo(map);
+      map.fitBounds(routeLayer.getBounds(),{padding:[40,40]});
+    }catch(e){}
+    document.getElementById('l-miles').value=miles;
+    document.getElementById('miles-display').textContent=miles.toLocaleString();
+    document.getElementById('miles-result').style.display='flex';
+    document.getElementById('miles-src-hint').innerHTML='<span style="color:var(--green);font-weight:600;">✓ Mileage Verified</span>';
+    milesSource='Verified';
+    updateTRLink();updPrev();
+  }catch(e){alert('Could not calculate miles. Check your HERE API key or enter miles manually.');}
+  btn.textContent='🚛 Calculate Truck Miles';btn.disabled=false;
+}
+
+function decodeFlexPolyline(encoded){
+  const D={0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,I:18,J:19,K:20,L:21,M:22,N:23,O:24,P:25,Q:26,R:27,S:28,T:29,U:30,V:31,W:32,X:33,Y:34,Z:35,a:36,b:37,c:38,d:39,e:40,f:41,g:42,h:43,i:44,j:45,k:46,l:47,m:48,n:49,o:50,p:51,q:52,r:53,s:54,t:55,u:56,v:57,w:58,x:59,y:60,z:61,'-':62,'_':63};
+  let i=0;
+  const rH=()=>{let v=0,s=0,c;do{c=D[encoded[i++]];v|=(c&0x1F)<<s;s+=5;}while(c>=0x20);return v;};
+  const rV=()=>{let v=0,s=0,c;do{c=D[encoded[i++]];v|=(c&0x1F)<<s;s+=5;}while(c>=0x20);return(v&1)?~(v>>1):(v>>1);};
+  const hV=rH(),hL=rH();let prec=5;
+  for(let h=0;h<hL-1;h++){const a=rH();if((a>>4)===0)prec=a&0xF;}
+  const f=Math.pow(10,-prec),coords=[];let la=0,ln=0;
+  while(i<encoded.length){la+=rV();ln+=rV();coords.push([la*f,ln*f]);}
+  return coords;
+}
+
+// ── PAY LOGIC ────────────────────────────────────────────────
+function calcPay(load,d){
+  if(d.payType==='cpm')return(load.miles*d.rate)/100;
+  if(d.payType==='pct')return load.value*(d.rate/100);
+  return d.rate;
+}
+function plabel(d){
+  if(d.payType==='cpm')return`${d.rate}¢/mile ($${(d.rate/100).toFixed(3)})`;
+  if(d.payType==='pct')return`${d.rate}% of gross`;
+  return`$${Number(d.rate).toFixed(2)} flat/load`;
+}
+
+// ── YTD CALC ─────────────────────────────────────────────────
+function getYTD(dIdx){
+  const now=new Date();
+  const yearStart=`${now.getFullYear()}-01-01`;
+  const d=drivers[dIdx];
+  const fl=loads.filter(l=>l.driverIdx===dIdx&&l.date>=yearStart);
+  const fa=accs.filter(x=>x.driverIdx===dIdx&&WEEKS[x.weekIdx]&&WEEKS[x.weekIdx].start>=yearStart);
+  const fd=deds.filter(x=>x.driverIdx===dIdx&&WEEKS[x.weekIdx]&&WEEKS[x.weekIdx].start>=yearStart);
+  const ytdMi=fl.reduce((s,l)=>s+l.miles,0);
+  const ytdGross=fl.reduce((s,l)=>s+calcPay(l,d),0)+fa.reduce((s,x)=>s+x.amt,0);
+  const ytdDed=fd.reduce((s,x)=>s+x.amt,0);
+  return{loads:fl.length,miles:ytdMi,gross:ytdGross,net:ytdGross-ytdDed};
+}
+
+function updYTD(){
+  const dIdx=parseInt(document.getElementById('s-driver').value);
+  const sec=document.getElementById('ytd-section');
+  if(isNaN(dIdx)||!drivers[dIdx]){sec.style.display='none';return;}
+  const ytd=getYTD(dIdx);
+  const d=drivers[dIdx];
+  sec.style.display='block';
+  document.getElementById('ytd-banner').innerHTML=`
+    <div class="ytd-card"><div class="lbl">YTD Loads</div><div class="val">${ytd.loads}</div><div class="sub">${new Date().getFullYear()} year to date</div></div>
+    <div class="ytd-card"><div class="lbl">YTD Miles</div><div class="val">${ytd.miles.toLocaleString()}</div><div class="sub">All verified loads</div></div>
+    <div class="ytd-card teal"><div class="lbl">YTD Gross Pay</div><div class="val">$${ytd.gross.toFixed(2)}</div><div class="sub">Before deductions</div></div>
+    <div class="ytd-card orange"><div class="lbl">YTD Net Pay</div><div class="val">$${ytd.net.toFixed(2)}</div><div class="sub">After deductions</div></div>`;
+}
+
+// ── DRIVERS ──────────────────────────────────────────────────
+let curPTState='cpm';
+function setPT(type){
+  curPTState=type;
+  ['cpm','pct','flat'].forEach(p=>document.getElementById('pt-'+p).classList.toggle('active',p===type));
+  const m={cpm:['Rate (cents per mile)','e.g. 65 = $0.65/mile','65'],pct:['% of Load Value','e.g. 25 = 25%','25'],flat:['Flat Rate per Load ($)','e.g. 200.00','200']};
+  document.getElementById('rl').textContent=m[type][0];
+  document.getElementById('rh').textContent=m[type][1];
+  document.getElementById('d-rate').placeholder=m[type][2];
+}
+function addDriver(){
+  const first=document.getElementById('d-first').value.trim();
+  const last=document.getElementById('d-last').value.trim();
+  const id=document.getElementById('d-id').value.trim();
+  const rate=parseFloat(document.getElementById('d-rate').value);
+  if(!first||!last||!id||isNaN(rate)){alert('Fill in all driver fields.');return;}
+  drivers.push({first,last,id,payType:curPTState,rate});
+  ['d-first','d-last','d-id','d-rate'].forEach(f=>document.getElementById(f).value='');
+  renderDrivers();
+}
+function renderDrivers(){
+  const el=document.getElementById('drivers-list');
+  if(!drivers.length){el.innerHTML='<div class="empty">No drivers added yet.</div>';return;}
+  el.innerHTML=drivers.map((d,i)=>{
+    const ytd=getYTD(i);
+    return`<div class="dr-card">
+      <div><div style="font-size:14px;font-weight:600;">${d.first} ${d.last}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${d.id} &bull; ${plabel(d)}</div></div>
+      <div style="display:flex;align-items:center;gap:20px;">
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">YTD Loads</div><div style="font-size:16px;font-weight:700;color:var(--navy);">${ytd.loads}</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">YTD Miles</div><div style="font-size:16px;font-weight:700;color:var(--navy);">${ytd.miles.toLocaleString()}</div></div>
+        <div style="text-align:center;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">YTD Net Pay</div><div style="font-size:16px;font-weight:700;color:var(--teal);">$${ytd.net.toFixed(2)}</div></div>
+        <button class="btn danger sm" onclick="removeDriver(${i})">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function removeDriver(i){
+  drivers.splice(i,1);
+  loads=loads.filter(l=>l.driverIdx!==i).map(l=>({...l,driverIdx:l.driverIdx>i?l.driverIdx-1:l.driverIdx}));
+  accs=accs.filter(x=>x.driverIdx!==i).map(x=>({...x,driverIdx:x.driverIdx>i?x.driverIdx-1:x.driverIdx}));
+  deds=deds.filter(x=>x.driverIdx!==i).map(x=>({...x,driverIdx:x.driverIdx>i?x.driverIdx-1:x.driverIdx}));
+  renderDrivers();renderLoads();renderAccs();renderDeds();
+}
+
+// ── LOADS ─────────────────────────────────────────────────────
+function updPrev(){
+  const dIdx=parseInt(document.getElementById('l-driver').value);
+  const miles=parseFloat(document.getElementById('l-miles').value);
+  const val=parseFloat(document.getElementById('l-val').value);
+  const bar=document.getElementById('pay-prev');
+  if(!isNaN(dIdx)&&drivers[dIdx]&&(!isNaN(miles)||!isNaN(val))){
+    const d=drivers[dIdx];
+    const pay=calcPay({miles:isNaN(miles)?0:miles,value:isNaN(val)?0:val},d);
+    bar.style.display='block';
+    bar.innerHTML=`💰 Estimated driver pay: <strong>$${pay.toFixed(2)}</strong><span style="opacity:.65;font-size:11px;margin-left:8px;">${plabel(d)}${!isNaN(miles)?' &bull; '+miles.toLocaleString()+' mi':''}</span>`;
+  }else{bar.style.display='none';}
+}
+function addLoad(){
+  const driverIdx=parseInt(document.getElementById('l-driver').value);
+  const weekIdx=parseInt(document.getElementById('l-week').value);
+  const loadNum=document.getElementById('l-load').value.trim();
+  const orig=document.getElementById('l-orig').value.trim();
+  const dest=document.getElementById('l-dest').value.trim();
+  const miles=parseFloat(document.getElementById('l-miles').value);
+  const value=parseFloat(document.getElementById('l-val').value);
+  const date=document.getElementById('l-date').value;
+  const status=document.getElementById('l-status').value;
+  if(isNaN(driverIdx)||isNaN(weekIdx)||!loadNum||isNaN(miles)||isNaN(value)||!date){alert('Fill in all load fields including driver, pay week, miles, and load value.');return;}
+  loads.push({driverIdx,weekIdx,loadNum,orig,dest,miles,value,date,status,src:milesSource});
+  ['l-load','l-miles','l-val'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('miles-result').style.display='none';
+  document.getElementById('pay-prev').style.display='none';
+  document.getElementById('miles-src-hint').textContent='Calculate from map or enter manually';
+  document.getElementById('truckrouter-link').style.display='none';
+  milesSource='Manual';
+  renderLoads();renderDrivers();
+}
+function renderLoads(){
+  const tb=document.getElementById('loads-body');
+  if(!loads.length){tb.innerHTML='<tr><td colspan="10" class="empty">No loads entered yet.</td></tr>';return;}
+  tb.innerHTML=loads.map((l,i)=>{
+    const d=drivers[l.driverIdx];
+    const pay=d?calcPay(l,d):0;
+    const w=WEEKS[l.weekIdx];
+    const o=l.orig.split(',')[0];
+    const dt=l.dest.split(',')[0];
+    const trUrl=`https://www.truckrouter.com/#${encodeURIComponent(o)}|${encodeURIComponent(dt)}`;
+    return`<tr>
+      <td style="font-weight:600;">${l.loadNum}</td>
+      <td>${d?d.first+' '+d.last:'—'}</td>
+      <td style="font-size:11px;white-space:nowrap;">${w?w.label:'—'}</td>
+      <td style="font-size:11px;">${o}</td>
+      <td style="font-size:11px;">${dt}</td>
+      <td style="font-weight:600;">${l.miles.toLocaleString()} <span class="badge ${l.src==='Verified'?'truck':'manual'}" style="margin-left:4px;">${l.src==='Verified'?'Verified':'Manual'}</span></td>
+      <td style="font-weight:700;color:var(--navy);">$${pay.toFixed(2)}</td>
+      <td style="font-size:11px;">${l.date}</td>
+      <td><a href="${trUrl}" target="_blank" style="color:var(--teal);font-size:11px;font-weight:500;text-decoration:none;">↗ Verify</a></td>
+      <td><button class="btn danger sm" onclick="removeLoad(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function removeLoad(i){loads.splice(i,1);renderLoads();renderDrivers();}
+
+// ── ACCESSORIALS ──────────────────────────────────────────────
+function addAcc(){
+  const driverIdx=parseInt(document.getElementById('acc-driver').value);
+  const weekIdx=parseInt(document.getElementById('acc-week').value);
+  const type=document.getElementById('acc-type').value;
+  const desc=document.getElementById('acc-desc').value.trim();
+  const amt=parseFloat(document.getElementById('acc-amt').value);
+  if(isNaN(driverIdx)||isNaN(weekIdx)||isNaN(amt)||amt<=0){alert('Select driver, pay week, and enter a valid amount.');return;}
+  accs.push({driverIdx,weekIdx,type,desc,amt});
+  document.getElementById('acc-desc').value='';
+  document.getElementById('acc-amt').value='';
+  renderAccs();renderDrivers();
+}
+function renderAccs(){
+  const tb=document.getElementById('acc-body');
+  if(!accs.length){tb.innerHTML='<tr><td colspan="6" class="empty">No accessorials or additional pay entered yet.</td></tr>';return;}
+  tb.innerHTML=accs.map((x,i)=>{
+    const d=drivers[x.driverIdx];
+    const w=WEEKS[x.weekIdx];
+    return`<tr>
+      <td>${d?d.first+' '+d.last:'—'}</td>
+      <td style="font-size:11px;white-space:nowrap;">${w?w.label:'—'}</td>
+      <td><span class="badge acc">${x.type}</span></td>
+      <td style="font-size:12px;color:var(--muted);">${x.desc||'—'}</td>
+      <td style="font-weight:600;color:var(--green);">+$${x.amt.toFixed(2)}</td>
+      <td><button class="btn danger sm" onclick="removeAcc(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function removeAcc(i){accs.splice(i,1);renderAccs();renderDrivers();}
+
+// ── DEDUCTIONS ────────────────────────────────────────────────
+function addDed(){
+  const driverIdx=parseInt(document.getElementById('ded-driver').value);
+  const weekIdx=parseInt(document.getElementById('ded-week').value);
+  const type=document.getElementById('ded-type').value;
+  const desc=document.getElementById('ded-desc').value.trim();
+  const amt=parseFloat(document.getElementById('ded-amt').value);
+  if(isNaN(driverIdx)||isNaN(weekIdx)||isNaN(amt)||amt<=0){alert('Select driver, pay week, and enter a valid amount.');return;}
+  deds.push({driverIdx,weekIdx,type,desc,amt});
+  document.getElementById('ded-desc').value='';
+  document.getElementById('ded-amt').value='';
+  renderDeds();renderDrivers();
+}
+function renderDeds(){
+  const tb=document.getElementById('ded-body');
+  if(!deds.length){tb.innerHTML='<tr><td colspan="6" class="empty">No deductions yet.</td></tr>';return;}
+  tb.innerHTML=deds.map((x,i)=>{
+    const d=drivers[x.driverIdx];
+    const w=WEEKS[x.weekIdx];
+    return`<tr>
+      <td>${d?d.first+' '+d.last:'—'}</td>
+      <td style="font-size:11px;white-space:nowrap;">${w?w.label:'—'}</td>
+      <td><span class="badge pend">${x.type}</span></td>
+      <td style="font-size:12px;color:var(--muted);">${x.desc||'—'}</td>
+      <td style="font-weight:600;color:var(--red);">-$${x.amt.toFixed(2)}</td>
+      <td><button class="btn danger sm" onclick="removeDed(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function removeDed(i){deds.splice(i,1);renderDeds();renderDrivers();}
+
+// ── STATEMENT ─────────────────────────────────────────────────
+function genStmt(){
+  const dIdx=parseInt(document.getElementById('s-driver').value);
+  const wIdx=parseInt(document.getElementById('s-week').value);
+  if(isNaN(dIdx)||isNaN(wIdx)){alert('Select a driver and pay week.');return;}
+  updYTD();
+  const d=drivers[dIdx],w=WEEKS[wIdx];
+  const fl=loads.filter(l=>l.driverIdx===dIdx&&l.weekIdx===wIdx);
+  const fa=accs.filter(x=>x.driverIdx===dIdx&&x.weekIdx===wIdx);
+  const fd=deds.filter(x=>x.driverIdx===dIdx&&x.weekIdx===wIdx);
+  const totMi=fl.reduce((s,l)=>s+l.miles,0);
+  const loadPay=fl.reduce((s,l)=>s+calcPay(l,d),0);
+  const totAcc=fa.reduce((s,x)=>s+x.amt,0);
+  const gross=loadPay+totAcc;
+  const totDed=fd.reduce((s,x)=>s+x.amt,0);
+  const net=gross-totDed;
+  const hereCt=fl.filter(l=>l.src==='Verified').length;
+  const ytd=getYTD(dIdx);
+  lastStmt={d,fl,fa,fd,totMi,loadPay,totAcc,gross,totDed,net,w,hereCt,ytd};
+
+  // Load rows — hide Load Value and Source for CPM drivers, hide Load Value for flat; always hide Source and Status from statement
+  const showVal=d.payType==='pct';
+  const lrows=fl.map(l=>{
+    const pay=calcPay(l,d);
+    return`<tr style="border-bottom:1px solid #f0f3f8;">
+      <td style="padding:7px 8px;font-weight:600;">${l.loadNum}</td>
+      <td style="padding:7px 8px;font-size:12px;">${l.orig.split(',')[0]}</td>
+      <td style="padding:7px 8px;font-size:12px;">${l.dest.split(',')[0]}</td>
+      <td style="padding:7px 8px;">${l.miles.toLocaleString()}</td>
+      ${showVal?`<td style="padding:7px 8px;">$${l.value.toFixed(2)}</td>`:''}
+      <td style="padding:7px 8px;font-weight:700;color:#0F2D72;">$${pay.toFixed(2)}</td>
+      <td style="padding:7px 8px;">${l.date}</td>
+    </tr>`;
+  }).join('');
+
+  const arows=fa.map(x=>`<tr style="border-bottom:1px solid #f0f3f8;">
+    <td style="padding:7px 8px;"><span style="background:#f3e8ff;color:#7c3aed;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;">${x.type}</span></td>
+    <td style="padding:7px 8px;font-size:12px;color:#6b7a99;">${x.desc||'—'}</td>
+    <td style="padding:7px 8px;font-weight:700;color:#15803d;">+$${x.amt.toFixed(2)}</td>
+  </tr>`).join('');
+
+  const drows=fd.map(x=>`<tr style="border-bottom:1px solid #f0f3f8;">
+    <td style="padding:7px 8px;"><span style="background:#fef9c3;color:#854d0e;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;">${x.type}</span></td>
+    <td style="padding:7px 8px;font-size:12px;color:#6b7a99;">${x.desc||'—'}</td>
+    <td style="padding:7px 8px;font-weight:700;color:#b91c1c;">-$${x.amt.toFixed(2)}</td>
+  </tr>`).join('');
+
+  document.getElementById('stmt-out').innerHTML=`
+  <div class="stmt-wrap">
+    <div class="stmt-hdr">
+      <div>
+        <div class="stmt-logo">R<span class="t">P</span>C<span class="o">.</span></div>
+        <div class="stmt-co">ROAD PRO CARRIERS</div>
+        <div class="stmt-co-info">
+          Road Pro Carriers LLC<br>
+          1781 North Turner Street<br>
+          Hobbs, NM 88240<br>
+          (980) 833-6398<br>
+          www.roadprocarriers.com<br>
+          HR@roadprocarriers.com
+        </div>
+      </div>
+      <div class="stmt-meta">
+        <strong>Driver Pay Statement</strong>
+        Pay Week: ${w.label}<br>
+        Issued: ${new Date().toLocaleDateString()}<br>
+        Loads: ${fl.length} &bull; Miles: ${totMi.toLocaleString()}<br>
+        Mileage Verified
+      </div>
+    </div>
+    <div class="stmt-body">
+      <div class="stmt-driver-bar">
+        <div>
+          <div style="font-size:17px;font-weight:700;">${d.first} ${d.last}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;">Driver ID: ${d.id} &bull; Pay Rate: ${plabel(d)}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,auto);gap:8px;">
+          <div class="metric"><div class="lbl">Loads</div><div class="val">${fl.length}</div></div>
+          <div class="metric"><div class="lbl">Miles</div><div class="val">${totMi.toLocaleString()}</div></div>
+          <div class="metric"><div class="lbl">Gross Pay</div><div class="val" style="font-size:16px;">$${gross.toFixed(2)}</div></div>
+        </div>
+      </div>
+
+      <div class="stmt-section">📊 Year-to-Date Summary</div>
+      <div class="ytd-stmt">
+        <div class="ytd-stmt-card"><div class="l">YTD Loads</div><div class="v">${ytd.loads}</div></div>
+        <div class="ytd-stmt-card"><div class="l">YTD Miles</div><div class="v">${ytd.miles.toLocaleString()}</div></div>
+        <div class="ytd-stmt-card"><div class="l">YTD Gross Pay</div><div class="v">$${ytd.gross.toFixed(2)}</div></div>
+        <div class="ytd-stmt-card"><div class="l">YTD Net Pay</div><div class="v">$${ytd.net.toFixed(2)}</div></div>
+      </div>
+
+      <div class="stmt-section">Load Detail</div>
+      ${fl.length?`<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;">
+        <thead><tr style="background:#f8f9fc;">
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Load #</th>
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Origin</th>
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Destination</th>
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Miles</th>
+          ${showVal?`<th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Load Value</th>`:''}
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Driver Pay</th>
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Date</th>
+        </tr></thead>
+        <tbody>${lrows}
+          <tr style="background:#f8f9fc;font-weight:600;">
+            <td colspan="3" style="padding:8px;">Totals</td>
+            <td style="padding:8px;">${totMi.toLocaleString()}</td>
+            ${showVal?`<td style="padding:8px;"></td>`:''}
+            <td style="padding:8px;color:#0F2D72;">$${loadPay.toFixed(2)}</td>
+            <td style="padding:8px;"></td>
+          </tr>
+        </tbody>
+      </table>`:'<p style="font-size:13px;color:var(--muted);margin-bottom:14px;">No loads for this period.</p>'}
+
+      ${fa.length?`<div class="stmt-section">Accessorials & Additional Pay</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;">
+        <thead><tr style="background:#f8f9fc;"><th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Type</th><th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Description</th><th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Amount</th></tr></thead>
+        <tbody>${arows}
+          <tr style="background:#f0fdf4;font-weight:600;"><td colspan="2" style="padding:8px;color:#15803d;">Total Additional Pay</td><td style="padding:8px;color:#15803d;">+$${totAcc.toFixed(2)}</td></tr>
+        </tbody>
+      </table>`:''}
+
+      ${fd.length?`<div class="stmt-section">Deductions</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;">
+        <thead><tr style="background:#f8f9fc;"><th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Type</th><th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Description</th><th style="padding:6px 8px;text-align:left;font-size:10px;color:#6b7a99;font-weight:600;text-transform:uppercase;">Amount</th></tr></thead>
+        <tbody>${drows}
+          <tr style="background:#fef2f2;font-weight:600;"><td colspan="2" style="padding:8px;color:#b91c1c;">Total Deductions</td><td style="padding:8px;color:#b91c1c;">-$${totDed.toFixed(2)}</td></tr>
+        </tbody>
+      </table>`:''}
+
+      <div class="stmt-totals">
+        <div class="stmt-totals-row"><span class="lbl">Load Pay</span><span class="amt">$${loadPay.toFixed(2)}</span></div>
+        ${fa.length?`<div class="stmt-totals-row"><span class="lbl">Accessorials & Additional Pay</span><span class="amt" style="color:#86efac;">+$${totAcc.toFixed(2)}</span></div>`:''}
+        <div class="stmt-totals-row"><span class="lbl">Gross Pay</span><span class="amt">$${gross.toFixed(2)}</span></div>
+        ${fd.length?`<div class="stmt-totals-row"><span class="lbl">Deductions</span><span class="amt" style="color:#fca5a5;">-$${totDed.toFixed(2)}</span></div>`:''}
+        <hr class="stmt-divider">
+        <div class="stmt-net">
+          <div><div class="lbl">Net Driver Pay</div><div class="sub">${fl.length} load${fl.length!==1?'s':''} &bull; ${totMi.toLocaleString()} mi &bull; ${fl.length} loads verified</div></div>
+          <div class="amt">$${net.toFixed(2)}</div>
+        </div>
+      </div>
+      <div class="stmt-footer">Road Pro Carriers LLC &bull; 1781 North Turner Street, Hobbs, NM 88240 &bull; (980) 833-6398 &bull; HR@roadprocarriers.com</div>
+    </div>
+  </div>`;
+}
+
+function dlStmt(){
+  if(!lastStmt){alert('Generate a statement first.');return;}
+  const{d,fl,fa,fd,totMi,loadPay,totAcc,gross,totDed,net,w,hereCt,ytd}=lastStmt;
+  const showVal=d.payType==='pct';
+  const lrows=fl.map(l=>{const pay=calcPay(l,d);return`<tr><td>${l.loadNum}</td><td>${l.orig.split(',')[0]}</td><td>${l.dest.split(',')[0]}</td><td>${l.miles.toLocaleString()}</td>${showVal?`<td>$${l.value.toFixed(2)}</td>`:''}<td><strong>$${pay.toFixed(2)}</strong></td><td>${l.date}</td></tr>`;}).join('');
+  const arows=fa.map(x=>`<tr><td>${x.type}</td><td>${x.desc||'—'}</td><td style="color:#15803d;font-weight:bold;">+$${x.amt.toFixed(2)}</td></tr>`).join('');
+  const drows=fd.map(x=>`<tr><td>${x.type}</td><td>${x.desc||'—'}</td><td style="color:#b91c1c;font-weight:bold;">-$${x.amt.toFixed(2)}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pay Statement — ${d.first} ${d.last} — ${w.label}</title>
+  <style>
+    @media print{body{margin:0;}.no-print{display:none;}@page{margin:0.55in;size:letter;}}
+    body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#1a2236;background:#fff;}
+    .hdr{background:#0F2D72;padding:22px 28px;display:flex;justify-content:space-between;align-items:flex-start;}
+    .logo{font-size:28px;font-weight:900;color:#fff;letter-spacing:3px;line-height:1;}.logo .t{color:#2BC4A4;}.logo .o{color:#E8600A;}
+    .logo-sub{font-size:8px;letter-spacing:3px;color:rgba(255,255,255,.4);margin-top:3px;}
+    .co-info{margin-top:12px;font-size:11px;color:rgba(255,255,255,.7);line-height:1.9;}
+    .hdr-right{text-align:right;}.hdr-right h2{color:#fff;font-size:16px;margin:0 0 8px;font-weight:600;}
+    .hdr-right p{color:rgba(255,255,255,.65);font-size:11px;margin:2px 0;line-height:1.8;}
+    .body{padding:20px 28px;}
+    .driver-bar{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid #e2e6ef;margin-bottom:14px;flex-wrap:wrap;gap:12px;}
+    .dname{font-size:18px;font-weight:700;margin-bottom:4px;}.dmeta{font-size:12px;color:#6b7a99;}
+    .kpis{display:flex;gap:8px;}.kpi{background:#f8f9fc;border:1px solid #e2e6ef;border-radius:8px;padding:8px 14px;text-align:center;}
+    .kpi .lbl{font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+    .kpi .val{font-size:16px;font-weight:700;color:#0F2D72;margin-top:2px;}
+    .ytd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+    .ytd-box{background:#f8f9fc;border:1px solid #e2e6ef;border-radius:8px;padding:8px 12px;text-align:center;}
+    .ytd-box .l{font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
+    .ytd-box .v{font-size:15px;font-weight:700;color:#0F2D72;margin-top:2px;}
+    .sec-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;font-weight:700;margin-bottom:5px;margin-top:12px;}
+    table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;}
+    th{background:#f8f9fc;padding:5px 8px;text-align:left;font-size:10px;color:#6b7a99;border-bottom:1px solid #e2e6ef;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+    td{padding:6px 8px;border-bottom:1px solid #f0f3f8;}
+    .tot td{font-weight:700;background:#f8f9fc;border-top:2px solid #d1d9e6;border-bottom:none;}
+    .acc-tot td{font-weight:700;background:#f0fdf4;border-top:2px solid #86efac;border-bottom:none;color:#15803d;}
+    .ded-tot td{font-weight:700;background:#fef2f2;border-top:2px solid #fca5a5;border-bottom:none;color:#b91c1c;}
+    .pay-box{background:#0F2D72;border-radius:10px;padding:16px 22px;margin-top:6px;}
+    .pr{display:flex;justify-content:space-between;align-items:center;padding:4px 0;}
+    .pr .l{font-size:12px;color:rgba(255,255,255,.65);}.pr .a{font-size:15px;font-weight:600;color:rgba(255,255,255,.85);}
+    hr.d{border:none;border-top:1px solid rgba(255,255,255,.2);margin:8px 0;}
+    .net{display:flex;justify-content:space-between;align-items:center;}
+    .net .l{font-size:14px;font-weight:700;color:#fff;}.net .s{font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;}
+    .net .a{font-size:28px;font-weight:900;color:#fff;}
+    .footer{text-align:center;font-size:10px;color:#9ca3af;margin-top:14px;padding-top:10px;border-top:1px solid #f0f3f8;}
+    .print-btn{position:fixed;bottom:24px;right:24px;background:#0F2D72;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(15,45,114,.35);}
+  </style></head><body>
+  <div class="hdr">
+    <div><div class="logo">R<span class="t">P</span>C<span class="o">.</span></div><div class="logo-sub">ROAD PRO CARRIERS</div>
+    <div class="co-info">Road Pro Carriers LLC<br>1781 North Turner Street<br>Hobbs, NM 88240<br>(980) 833-6398<br>www.roadprocarriers.com<br>HR@roadprocarriers.com</div></div>
+    <div class="hdr-right"><h2>Driver Pay Statement</h2><p>Pay Week: ${w.label}</p><p>Issued: ${new Date().toLocaleDateString()}</p><p>Loads: ${fl.length} &bull; Miles: ${totMi.toLocaleString()}</p><p>Mileage Verified</p></div>
+  </div>
+  <div class="body">
+    <div class="driver-bar">
+      <div><div class="dname">${d.first} ${d.last}</div><div class="dmeta">Driver ID: ${d.id} &bull; Pay Rate: ${plabel(d)}</div></div>
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">Loads</div><div class="val">${fl.length}</div></div>
+        <div class="kpi"><div class="lbl">Miles</div><div class="val">${totMi.toLocaleString()}</div></div>
+        <div class="kpi"><div class="lbl">Gross Pay</div><div class="val">$${gross.toFixed(2)}</div></div>
+      </div>
+    </div>
+    <div class="sec-lbl">📊 Year-to-Date Summary</div>
+    <div class="ytd-grid">
+      <div class="ytd-box"><div class="l">YTD Loads</div><div class="v">${ytd.loads}</div></div>
+      <div class="ytd-box"><div class="l">YTD Miles</div><div class="v">${ytd.miles.toLocaleString()}</div></div>
+      <div class="ytd-box"><div class="l">YTD Gross Pay</div><div class="v">$${ytd.gross.toFixed(2)}</div></div>
+      <div class="ytd-box"><div class="l">YTD Net Pay</div><div class="v">$${ytd.net.toFixed(2)}</div></div>
+    </div>
+    <div class="sec-lbl">Load Detail</div>
+    <table><thead><tr><th>Load #</th><th>Origin</th><th>Destination</th><th>Miles</th>${showVal?'<th>Load Value</th>':''}<th>Driver Pay</th><th>Date</th></tr></thead>
+    <tbody>${lrows}<tr class="tot"><td colspan="3">Totals</td><td>${totMi.toLocaleString()}</td>${showVal?'<td></td>':''}<td>$${loadPay.toFixed(2)}</td><td></td></tr></tbody></table>
+    ${fa.length?`<div class="sec-lbl">Accessorials & Additional Pay</div>
+    <table><thead><tr><th>Type</th><th>Description</th><th>Amount</th></tr></thead>
+    <tbody>${arows}<tr class="acc-tot"><td colspan="2">Total Additional Pay</td><td>+$${totAcc.toFixed(2)}</td></tr></tbody></table>`:''}
+    ${fd.length?`<div class="sec-lbl">Deductions</div>
+    <table><thead><tr><th>Type</th><th>Description</th><th>Amount</th></tr></thead>
+    <tbody>${drows}<tr class="ded-tot"><td colspan="2">Total Deductions</td><td>-$${totDed.toFixed(2)}</td></tr></tbody></table>`:''}
+    <div class="pay-box">
+      <div class="pr"><span class="l">Load Pay</span><span class="a">$${loadPay.toFixed(2)}</span></div>
+      ${fa.length?`<div class="pr"><span class="l">Accessorials & Additional Pay</span><span class="a" style="color:#86efac;">+$${totAcc.toFixed(2)}</span></div>`:''}
+      <div class="pr"><span class="l">Gross Pay</span><span class="a">$${gross.toFixed(2)}</span></div>
+      ${fd.length?`<div class="pr"><span class="l">Deductions</span><span class="a" style="color:#fca5a5;">-$${totDed.toFixed(2)}</span></div>`:''}
+      <hr class="d">
+      <div class="net">
+        <div><div class="l">Net Driver Pay</div><div class="s">${fl.length} load${fl.length!==1?'s':''} &bull; ${totMi.toLocaleString()} miles &bull; ${fl.length} loads verified</div></div>
+        <div class="a">$${net.toFixed(2)}</div>
+      </div>
+    </div>
+    <div class="footer">Road Pro Carriers LLC &bull; 1781 North Turner Street, Hobbs, NM 88240 &bull; (980) 833-6398 &bull; HR@roadprocarriers.com</div>
+  </div>
+  <button class="print-btn no-print" onclick="window.print()">🖨 Print / Save PDF</button>
+  </body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`RPC_PayStatement_${d.last}_${w.start}_${w.end}.html`;
+  a.click();URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
