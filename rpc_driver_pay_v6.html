@@ -130,6 +130,8 @@ tr:hover td{background:#f8f9fc;}
 .pcm-btn{padding:8px 14px;font-size:13px;font-weight:500;border-radius:7px;border:1px solid var(--teal);color:var(--teal);background:transparent;cursor:pointer;white-space:nowrap;}
 .pcm-btn:hover{background:#e6faf6;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://raw.githubusercontent.com/roadprocarriers/rpc-website/main/admin-push.js"></script>
 </head>
 <body>
 
@@ -383,6 +385,7 @@ tr:hover td{background:#f8f9fc;}
     <div class="btn-row">
       <button class="btn primary" onclick="genStmt()">📄 Generate Statement</button>
       <button class="btn teal" onclick="dlStmt()">⬇ Download / Print</button>
+      <button type="button" class="btn teal" onclick="pushStatementToPortal({driver_first_name:lastStmt.d.first,driver_last_name:lastStmt.d.last,driver_id:lastStmt.d.id,pay_period_start:lastStmt.w.start,pay_period_end:lastStmt.w.end,loaded_miles:lastStmt.totMi,empty_miles:0,total_miles:lastStmt.totMi,gross_pay:lastStmt.gross,deductions:lastStmt.fd.reduce(function(acc,ded){acc[ded.label]=ded.amount;return acc;},{}),net_pay:lastStmt.net,pay_type:lastStmt.d.payType,rate:lastStmt.d.rate,statement_data:lastStmt})" style="background:#2BC4A4;color:#fff;border:none;">☁ Push to Portal</button>
     </div>
   </div>
 
