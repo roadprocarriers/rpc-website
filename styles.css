@@ -99,6 +99,17 @@ section {
   background: #24a88c;
   border-color: #24a88c;
 }
+.btn-navy {
+  background: #0F2D72;
+  color: #FFFFFF;
+  border-color: #0F2D72;
+}
+
+.btn-navy:hover {
+  background: #0a1f52;
+  border-color: #0a1f52;
+}
+
 
 /* ---------- Cards ---------- */
 .card {
@@ -160,6 +171,16 @@ section {
 }
 
 .nav-login:hover {
+  color: #FFFFFF;
+}
+
+.nav-admin {
+  padding: 10px 22px;
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+.nav-admin:hover {
   color: #FFFFFF;
 }
 
