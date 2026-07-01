@@ -100,78 +100,17 @@ section {
   border-color: #24a88c;
 }
 .btn-navy {
-  background: #0F2D72;
-  color: #FFFFFF;
-  border-color: #0F2D72;
+  background: transparent;
+  color: #E8600A;
+  border-color: #E8600A;
+  border-width: 2px;
+  font-weight: 600;
 }
 
 .btn-navy:hover {
-  background: #0a1f52;
-  border-color: #0a1f52;
-}
-
-
-/* ---------- Cards ---------- */
-.card {
-  background: #FFFFFF;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 32px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-}
-
-/* ---------- Header ---------- */
-.site-header {
-  background: #0F2D72;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.header-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.logo img {
-  width: 120px;
-}
-
-.main-nav {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-}
-
-.main-nav a {
+  background: #E8600A;
   color: #FFFFFF;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  font-size: 15px;
-  transition: color 0.3s ease;
-}
-
-.main-nav a:hover,
-.main-nav a.active {
-  color: #2BC4A4;
-}
-
-.nav-login {
-  padding: 10px 22px;
-  font-size: 14px;
-}
-
-.nav-login:hover {
-  color: #FFFFFF;
+  border-color: #E8600A;
 }
 
 .nav-admin {
@@ -183,6 +122,7 @@ section {
 .nav-admin:hover {
   color: #FFFFFF;
 }
+
 
 .nav-toggle {
   display: none;
