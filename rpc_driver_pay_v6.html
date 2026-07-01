@@ -200,35 +200,14 @@ tr:hover td{background:#f8f9fc;}
 
 <!-- DRIVERS -->
 <div id="tab-drivers" class="sec">
-  <div class="card">
-    <div class="card-title">Add Driver</div>
-    <div class="fg">
-      <div class="f"><label>First Name</label><input type="text" id="d-first" placeholder="John"/></div>
-      <div class="f"><label>Last Name</label><input type="text" id="d-last" placeholder="Smith"/></div>
-      <div class="f"><label>Driver ID</label><input type="text" id="d-id" placeholder="RPC-001"/></div>
-    </div>
-    <div class="f" style="margin-bottom:10px;"><label>Pay Structure</label></div>
-    <div class="ptoggle">
-      <button class="active" id="pt-cpm" onclick="setPT('cpm')">CPM — Cents Per Mile</button>
-      <button id="pt-pct" onclick="setPT('pct')">% of Load</button>
-      <button id="pt-flat" onclick="setPT('flat')">Flat Rate / Load</button>
-    </div>
-    <div class="fg">
-      <div class="f">
-        <label id="rl">Rate (cents per mile)</label>
-        <input type="number" id="d-rate" placeholder="65" step="0.1"/>
-        <div class="hint" id="rh">e.g. 65 = $0.65/mile</div>
-      </div>
-    </div>
-    <div class="btn-row"><button class="btn primary" onclick="addDriver()">+ Add Driver</button></div>
+<div class="card">
+  <div class="card-title">Driver Roster — Synced from Admin Portal</div>
+  <div class="info-bar">
+    <span>ℹ</span>
+    <span>Drivers are managed in the <strong>Admin Portal</strong>. Add or remove drivers there and they appear here automatically.</span>
   </div>
-  <div class="card">
-    <div class="card-title">Driver Roster</div>
-    <div id="drivers-list"><div class="empty">No drivers added yet.</div></div>
-  </div>
+  <div class="btn-row"><button class="btn primary" onclick="loadDriversFromSupabase()">↺ Refresh Drivers</button></div>
 </div>
-
-<!-- LOADS -->
 <div id="tab-loads" class="sec">
   <div class="card">
     <div class="card-title">Route & Mileage</div>
@@ -484,6 +463,7 @@ window.addEventListener('load',()=>{
   if(k){document.getElementById('here-key').value=k;document.getElementById('key-status').innerHTML='<span style="color:var(--green);">✓ Key loaded from browser storage.</span>';}
   populateWeekSels();
   document.getElementById('l-date').value=new Date().toISOString().split('T')[0];
+  loadDriversFromSupabase();
 });
 
 // ── ADDRESS AUTOCOMPLETE ─────────────────────────────────────
@@ -615,50 +595,18 @@ function updYTD(){
     <div class="ytd-card orange"><div class="lbl">YTD Net Pay</div><div class="val">$${ytd.net.toFixed(2)}</div><div class="sub">After deductions</div></div>`;
 }
 
-// ── DRIVERS ──────────────────────────────────────────────────
-let curPTState='cpm';
-function setPT(type){
-  curPTState=type;
-  ['cpm','pct','flat'].forEach(p=>document.getElementById('pt-'+p).classList.toggle('active',p===type));
-  const m={cpm:['Rate (cents per mile)','e.g. 65 = $0.65/mile','65'],pct:['% of Load Value','e.g. 25 = 25%','25'],flat:['Flat Rate per Load ($)','e.g. 200.00','200']};
-  document.getElementById('rl').textContent=m[type][0];
-  document.getElementById('rh').textContent=m[type][1];
-  document.getElementById('d-rate').placeholder=m[type][2];
-}
-function addDriver(){
-  const first=document.getElementById('d-first').value.trim();
-  const last=document.getElementById('d-last').value.trim();
-  const id=document.getElementById('d-id').value.trim();
-  const rate=parseFloat(document.getElementById('d-rate').value);
-  if(!first||!last||!id||isNaN(rate)){alert('Fill in all driver fields.');return;}
-  drivers.push({first,last,id,payType:curPTState,rate});
-  ['d-first','d-last','d-id','d-rate'].forEach(f=>document.getElementById(f).value='');
+// ── DRIVERS — Loaded from Supabase ─────────────────────────────────
+const _SB=supabase.createClient('https://rfeakhvcjuidsgrjfubn.supabase.co','sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_');
+async function loadDriversFromSupabase(){
+  const el=document.getElementById('drivers-list');
+  el.innerHTML='<div class="empty">Loading drivers...</div>';
+  const {data,error}=await _SB.from('drivers').select('*').eq('is_active',true).order('last_name');
+  if(error){el.innerHTML='<div class="empty" style="color:red;">Error: '+error.message+'</div>';return;}
+  if(!data||!data.length){el.innerHTML='<div class="empty">No active drivers. Add drivers in the Admin Portal.</div>';return;}
+  drivers=data.map(d=>({first:d.first_name,last:d.last_name,id:d.driver_id,payType:d.pay_type,rate:parseFloat(d.pay_rate)||0}));
+  populateDriverSels();
   renderDrivers();
 }
-function renderDrivers(){
-  const el=document.getElementById('drivers-list');
-  if(!drivers.length){el.innerHTML='<div class="empty">No drivers added yet.</div>';return;}
-  el.innerHTML=drivers.map((d,i)=>{
-    const ytd=getYTD(i);
-    return`<div class="dr-card">
-      <div><div style="font-size:14px;font-weight:600;">${d.first} ${d.last}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${d.id} &bull; ${plabel(d)}</div></div>
-      <div style="display:flex;align-items:center;gap:20px;">
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">YTD Loads</div><div style="font-size:16px;font-weight:700;color:var(--navy);">${ytd.loads}</div></div>
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">YTD Miles</div><div style="font-size:16px;font-weight:700;color:var(--navy);">${ytd.miles.toLocaleString()}</div></div>
-        <div style="text-align:center;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">YTD Net Pay</div><div style="font-size:16px;font-weight:700;color:var(--teal);">$${ytd.net.toFixed(2)}</div></div>
-        <button class="btn danger sm" onclick="removeDriver(${i})">Remove</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-function removeDriver(i){
-  drivers.splice(i,1);
-  loads=loads.filter(l=>l.driverIdx!==i).map(l=>({...l,driverIdx:l.driverIdx>i?l.driverIdx-1:l.driverIdx}));
-  accs=accs.filter(x=>x.driverIdx!==i).map(x=>({...x,driverIdx:x.driverIdx>i?x.driverIdx-1:x.driverIdx}));
-  deds=deds.filter(x=>x.driverIdx!==i).map(x=>({...x,driverIdx:x.driverIdx>i?x.driverIdx-1:x.driverIdx}));
-  renderDrivers();renderLoads();renderAccs();renderDeds();
-}
-
 // ── LOADS ─────────────────────────────────────────────────────
 function updPrev(){
   const dIdx=parseInt(document.getElementById('l-driver').value);
