@@ -146,6 +146,96 @@ section {
   transition: all 0.3s ease;
 }
 
+/* ---------- Header ---------- */
+.site-header {
+  background: #0F2D72;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo img {
+  height: 48px;
+  width: auto;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.main-nav a {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.9);
+  transition: color 0.2s ease;
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+  color: #2BC4A4;
+}
+
+.nav-login {
+  padding: 10px 22px;
+  font-size: 14px;
+}
+
+/* ---------- Portal Landing ---------- */
+.portal-landing {
+  min-height: calc(100vh - 72px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: #f8fafb;
+}
+
+.portal-landing-inner {
+  text-align: center;
+  max-width: 520px;
+}
+
+.portal-logo {
+  width: 200px;
+  max-width: 70vw;
+  height: auto;
+  margin: 0 auto 20px;
+}
+
+.portal-tagline {
+  font-family: 'Poppins', sans-serif;
+  font-size: 17px;
+  color: #0F2D72;
+  margin-bottom: 40px;
+  letter-spacing: 0.5px;
+}
+
+.portal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.btn-portal {
+  width: 100%;
+  padding: 20px 32px;
+  font-size: 18px;
+  text-align: center;
+}
+
 /* ---------- Hero ---------- */
 .hero {
   min-height: 700px;
@@ -898,6 +988,20 @@ section {
 
   .hero {
     min-height: 500px;
+  }
+
+  .portal-landing {
+    min-height: calc(100vh - 72px);
+    padding: 40px 20px;
+  }
+
+  .portal-logo {
+    width: 160px;
+  }
+
+  .btn-portal {
+    padding: 18px 24px;
+    font-size: 16px;
   }
 
   .form-card {
