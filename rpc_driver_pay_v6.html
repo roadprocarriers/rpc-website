@@ -131,7 +131,7 @@ tr:hover td{background:#f8f9fc;}
 .pcm-btn:hover{background:#e6faf6;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://raw.githubusercontent.com/roadprocarriers/rpc-website/main/admin-push.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/roadprocarriers/rpc-website@main/admin-push.js"></script>
 </head>
 <body>
 
@@ -147,8 +147,7 @@ tr:hover td{background:#f8f9fc;}
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="sw('setup')">⚙ Setup</div>
-  <div class="tab" onclick="sw('drivers')">👤 Drivers</div>
+    <div class="tab active" onclick="sw('drivers')">👤 Drivers</div>
   <div class="tab" onclick="sw('loads')">🚛 Loads</div>
   <div class="tab" onclick="sw('accessorials')">➕ Accessorials</div>
   <div class="tab" onclick="sw('deductions')">➖ Deductions</div>
@@ -158,7 +157,7 @@ tr:hover td{background:#f8f9fc;}
 <div class="content">
 
 <!-- SETUP -->
-<div id="tab-setup" class="sec active">
+<div id="tab-setup" class="sec" style="display:none!important">
   <div class="card">
     <div class="card-title">HERE Truck Routing API Key</div>
     <div class="api-setup">
@@ -167,7 +166,7 @@ tr:hover td{background:#f8f9fc;}
       1. Go to <a href="https://platform.here.com" target="_blank" style="color:#0369a1;">platform.here.com</a> → Access Manager → Apps → Create new app → Create API key<br>
       2. Copy the key and paste it below — saves automatically in your browser</p>
       <div class="api-key-row">
-        <input type="text" id="here-key" placeholder="Paste your HERE API key here..."/>
+        <input type="text" id="here-key" placeholder="Paste your HERE API key here..." oninput="localStorage.setItem('here_api_key',this.value.trim())"/>
         <button class="btn primary" onclick="saveKey()">Save Key</button>
         <button class="btn" onclick="testKey()">Test Connection</button>
       </div>
@@ -199,7 +198,7 @@ tr:hover td{background:#f8f9fc;}
 </div>
 
 <!-- DRIVERS -->
-<div id="tab-drivers" class="sec">
+<div id="tab-drivers" class="sec active">
 <div class="card">
 <div class="card-title">Driver Roster — Synced from Admin Portal</div>
 <div class="info-bar">
@@ -439,6 +438,7 @@ function populateDriverSels(){
 // ── TABS ─────────────────────────────────────────────────────
 function sw(t){
   const names=['setup','drivers','loads','accessorials','deductions','statement'];
+  if(t==='setup')t='drivers';
   names.forEach((n,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',n===t);
     document.getElementById('tab-'+n).classList.toggle('active',n===t);
@@ -564,12 +564,12 @@ function decodeFlexPolyline(encoded){
 
 // ── PAY LOGIC ────────────────────────────────────────────────
 function calcPay(load,d){
-  if(d.payType==='cpm')return(load.miles*d.rate)/100;
+  if(d.payType==='cpm')return load.miles*d.rate;
   if(d.payType==='pct')return load.value*(d.rate/100);
   return d.rate;
 }
 function plabel(d){
-  if(d.payType==='cpm')return`${d.rate}¢/mile ($${(d.rate/100).toFixed(3)})`;
+  if(d.payType==='cpm')return`${Number(d.rate).toFixed(2)}/mile`;
   if(d.payType==='pct')return`${d.rate}% of gross`;
   return`$${Number(d.rate).toFixed(2)} flat/load`;
 }
