@@ -201,13 +201,20 @@ tr:hover td{background:#f8f9fc;}
 <!-- DRIVERS -->
 <div id="tab-drivers" class="sec">
 <div class="card">
-  <div class="card-title">Driver Roster — Synced from Admin Portal</div>
-  <div class="info-bar">
-    <span>ℹ</span>
-    <span>Drivers are managed in the <strong>Admin Portal</strong>. Add or remove drivers there and they appear here automatically.</span>
-  </div>
-  <div class="btn-row"><button class="btn primary" onclick="loadDriversFromSupabase()">↺ Refresh Drivers</button></div>
+<div class="card-title">Driver Roster — Synced from Admin Portal</div>
+<div class="info-bar">
+<span>ℹ</span>
+<span>Drivers are managed in the <strong>Admin Portal</strong>. Add or remove drivers there and they appear here automatically.</span>
 </div>
+<div class="btn-row"><button class="btn primary" onclick="loadDriversFromSupabase()">↺ Refresh Drivers</button></div>
+</div>
+<div class="card">
+<div class="card-title">Driver Roster</div>
+<div id="drivers-list"><div class="empty">Loading drivers...</div></div>
+</div>
+</div>
+
+<!-- LOADS -->
 <div id="tab-loads" class="sec">
   <div class="card">
     <div class="card-title">Route & Mileage</div>
