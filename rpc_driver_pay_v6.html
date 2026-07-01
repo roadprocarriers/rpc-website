@@ -437,7 +437,7 @@ function populateDriverSels(){
 
 // ── TABS ─────────────────────────────────────────────────────
 function sw(t){
-  const names=['setup','drivers','loads','accessorials','deductions','statement'];
+  const names=['drivers','loads','accessorials','deductions','statement'];
   if(t==='setup')t='drivers';
   names.forEach((n,i)=>{
     document.querySelectorAll('.tab')[i].classList.toggle('active',n===t);
@@ -604,6 +604,17 @@ function updYTD(){
 
 // ── DRIVERS — Loaded from Supabase ─────────────────────────────────
 const _SB=supabase.createClient('https://rfeakhvcjuidsgrjfubn.supabase.co','sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_');
+function renderDrivers(){
+const el=document.getElementById('drivers-list');
+if(!drivers.length){el.innerHTML='<div class="empty">No active drivers found. Add drivers in the Admin Portal.</div>';return;}
+el.innerHTML=drivers.map((d,i)=>`<div class="dr-card">
+<div><strong>${d.first} ${d.last}</strong><span style="margin-left:8px;font-size:11px;color:var(--muted);">${d.id}</span></div>
+<div style="display:flex;gap:12px;align-items:center;">
+<span style="font-size:12px;color:var(--navy);">${d.payType==='cpm'?d.rate.toFixed(2)+'/mi':d.payType==='pct'?d.rate+'%':'$'+d.rate.toFixed(2)+' flat'}</span>
+<span class="badge done">Active</span>
+</div>
+</div>`).join('');
+}
 async function loadDriversFromSupabase(){
   const el=document.getElementById('drivers-list');
   el.innerHTML='<div class="empty">Loading drivers...</div>';
