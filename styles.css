@@ -149,8 +149,8 @@ section {
   transition: color 0.3s ease;
 }
 
-.main-nav a:hover,
-.main-nav a.active {
+.main-nav a:not(.btn):hover,
+.main-nav a:not(.btn).active {
   color: #2BC4A4;
 }
 
@@ -161,6 +161,20 @@ section {
 
 .nav-login:hover {
   color: #FFFFFF;
+}
+
+.nav-admin {
+  padding: 10px 22px;
+  font-size: 14px;
+  background: transparent;
+  color: #E8600A;
+  border: 2px solid #E8600A;
+}
+
+.nav-admin:hover {
+  background: #E8600A;
+  color: #FFFFFF;
+  border-color: #E8600A;
 }
 
 .nav-toggle {
@@ -441,8 +455,42 @@ section {
 
 .cta-banner-homecoming,
 .hero.cta-banner-homecoming {
-  background-position: center 45%;
-  min-height: 550px;
+  background-image: none;
+  background-size: cover;
+  background-position: center 60%;
+  background-color: transparent;
+  min-height: 600px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.cta-banner-homecoming .cta-banner-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 60%;
+  z-index: 0;
+}
+
+.cta-banner-homecoming .hero-content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 100px 24px;
+}
+
+.cta-banner-homecoming::before,
+.hero.cta-banner-homecoming::before {
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1;
 }
 
 .careers-hero {
@@ -451,11 +499,6 @@ section {
 
 .careers-hero::before {
   background: rgba(0, 0, 0, 0.45);
-}
-
-.cta-banner-homecoming::before,
-.hero.cta-banner-homecoming::before {
-  background: rgba(0, 0, 0, 0.35);
 }
 
 .careers-cta h1,
