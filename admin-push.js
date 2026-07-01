@@ -88,7 +88,7 @@ async function pushStatementToPortal(statement) {
     pay_type:         statement.pay_type       ?? null,
     rate:             statement.rate           ?? null,
     statement_data:   statement.statement_data ?? statement,
-    status:           'final',
+    status:           'approved',
   };
 
   // ── 3. Insert into pay_statements ────────────────────────────────────────
