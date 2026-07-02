@@ -101,7 +101,7 @@ document.getElementById('adminSignOut').addEventListener('click',()=>{sessionSto
 const {createClient}=supabase;
 const sb=createClient('https://rfeakhvcjuidsgrjfubn.supabase.co','sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_');
 var tabLoaded={};
-function initApp(){
+function initApp(){if(!tabLoaded)tabLoaded={};
   if(tabLoaded._init)return;tabLoaded._init=true;
   document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
