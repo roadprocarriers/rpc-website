@@ -7,7 +7,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#001A57;--aqua:#008E97;--orange:#F58220;
+  --navy:#001A57;--aqua:#008E97;--orange:#F5822
   --bg:#0A0E1A;--card:#111827;--card2:#1a2233;--card3:#0d1520;
   --border:rgba(0,142,151,.2);--muted:rgba(255,255,255,.45);--dim:rgba(255,255,255,.2);
 }
@@ -602,7 +602,7 @@ var CITIES=[
 /* ─── INIT ─── */
 (function(){
   updateTime(); setInterval(updateTime,1000);
-  loadStorage(); renderChips(); renderProfiles(); loadSettings();
+  loadStorage(); loadDriversFromSupabase(); renderChips(); renderProfiles(); loadSettings();
   fetchEia(); fetchTrulos();
   addStop('pu'); addStop('del'); // start with one pickup and one delivery
 })();
@@ -1838,6 +1838,47 @@ function setMktView(view){
   });
 }
 
-</script>
+
+
+// ── Supabase driver loader ──
+async function loadDriversFromSupabase() {
+  try {
+    var res = await fetch('https://rfeakhvcjuidsgrjfubn.supabase.co/rest/v1/drivers?is_active=eq.true&select=*&order=first_name.asc', {
+      headers: {
+        'apikey': 'sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_',
+        'Authorization': 'Bearer sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_'
+      }
+    });
+    if (!res.ok) throw new Error('Supabase error ' + res.status);
+    var rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return;
+    // Map Supabase rows to the app driver format
+    A.drivers = rows.map(function(r) {
+      var pt = r.pay_type || 'cpm';
+      var rate = r.pay_rate || 0;
+      return {
+        id: r.id || (r.first_name + '_' + r.last_name),
+        name: (r.first_name + ' ' + r.last_name).trim(),
+        truck: r.truck_unit || 'Unit',
+        payType: pt,
+        cpm: pt === 'cpm' ? String(rate) : '0',
+        pct: pt === 'pct' ? String(rate) : '0',
+        flat: pt === 'flat' ? String(rate) : '0',
+        home: '',
+        equip: '',
+        mpg: '6',
+        mc: '',
+        phone: r.phone || '',
+        email: r.email || '',
+        driverId: r.driver_id || '',
+        supabaseId: r.id
+      };
+    });
+    renderChips();
+    renderProfiles();
+  } catch(e) {
+    console.warn('Could not load drivers from Supabase:', e);
+  }
+}</script>
 </body>
 </html>
