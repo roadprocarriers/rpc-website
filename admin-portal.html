@@ -89,7 +89,7 @@ const PASS='1234',SK='rpc_admin_auth';
 const gate=document.getElementById('gate'),app=document.getElementById('app');
 function showApp(){gate.classList.add('hidden');app.style.display='flex';}
 function showGate(){gate.classList.remove('hidden');app.style.display='none';}
-if(sessionStorage.getItem(SK)==='1'){showApp();initApp();}
+
 document.getElementById('gateBtn').addEventListener('click',tryLogin);
 document.getElementById('gatePass').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
 function tryLogin(){
@@ -100,7 +100,7 @@ function tryLogin(){
 document.getElementById('adminSignOut').addEventListener('click',()=>{sessionStorage.removeItem(SK);showGate();});
 const {createClient}=supabase;
 const sb=createClient('https://rfeakhvcjuidsgrjfubn.supabase.co','sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_');
-var tabLoaded={};
+var tabLoaded={};if(sessionStorage.getItem(SK)==='1'){showApp();initApp();}
 function initApp(){if(!tabLoaded)tabLoaded={};
   if(tabLoaded._init)return;tabLoaded._init=true;
   document.querySelectorAll('.tab-btn').forEach(btn=>{
