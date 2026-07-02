@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Dispatch — Road Pro Carriers</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -239,7 +240,11 @@ select option{background:#1e2a3a}
   <!-- DRIVER SELECT -->
   <div class="card">
     <div class="ct">Select Driver</div>
-    <div class="dchips" id="driverChips"><div style="color:var(--muted);font-size:12px;padding:6px">No drivers yet — go to Driver Profiles to add your team.</div></div>
+    <div class="f">
+      <select id="driverSelect" onchange="selDriverFromDropdown(this.value)">
+        <option value="">Loading drivers...</option>
+      </select>
+    </div>
     <div class="dbadge" id="driverBadge" style="display:none"></div>
   </div>
 
@@ -548,8 +553,12 @@ select option{background:#1e2a3a}
 var stopCount=0;
 
 /* ─── STATE ─── */
+var SUPABASE_URL='https://rfeakhvcjuidsgrjfubn.supabase.co';
+var SUPABASE_ANON_KEY='sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_';
+var supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
 var A = {
-  drivers:[], selDriver:null, selTrailer:'dryvan',
+  drivers:[], dbDrivers:[], selDriver:null, selTrailer:'dryvan',
   stops:[], // [{type:'curLoc'|'pu'|'del', coords, label, state, zip}]
   miles:0, deadMiles:0, loadedMiles:0,
   diesel:3.847, hereKey:'OSnpV1lPma0S8uCSZAfVNZfjoDQSUrjI6v2Gshabhmc', eiaKey:'', owmKey:'', fredKey:'',
@@ -602,7 +611,7 @@ var CITIES=[
 /* ─── INIT ─── */
 (function(){
   updateTime(); setInterval(updateTime,1000);
-  loadStorage(); loadDriversFromSupabase(); renderChips(); renderProfiles(); loadSettings();
+  loadStorage(); renderProfiles(); loadSettings(); loadSupabaseDrivers();
   fetchEia(); fetchTrulos();
   addStop('pu'); addStop('del'); // start with one pickup and one delivery
 })();
@@ -773,31 +782,90 @@ function updateReeferLabel(){
   }
 }
 
-/* ─── DRIVER CHIPS ─── */
-function renderChips(){
-  var el=document.getElementById('driverChips');
-  if(!A.drivers.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:6px">No drivers yet — go to Driver Profiles.</div>';return;}
-  el.innerHTML=A.drivers.map(function(d){
-    var ini=d.name.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
-    var pay=d.payType==='cpm'?d.cpm+'¢/mi':d.payType==='pct'?d.pct+'%':'$'+d.flat;
-    return '<div class="dchip'+(A.selDriver&&A.selDriver.id===d.id?' sel':'')+'" onclick="selDriver(\''+d.id+'\')">'
-      +'<div class="dav">'+ini+'</div><div class="dname">'+d.name+'</div>'
-      +'<div class="dtruck">'+d.truck+'</div><div class="dpay">'+pay+'</div></div>';
+/* ─── SUPABASE DRIVERS ─── */
+function normalizePayType(payType){
+  if(!payType) return 'cpm';
+  var p=String(payType).toLowerCase();
+  if(p==='cpm'||p==='mile'||p==='per_mile'||p==='per mile') return 'cpm';
+  if(p==='pct'||p==='percent'||p==='percentage'||p==='%') return 'pct';
+  if(p==='flat'||p==='flat_rate'||p==='per_load') return 'flat';
+  return 'cpm';
+}
+function mapDbDriver(row){
+  var payType=normalizePayType(row.pay_type);
+  var rate=parseFloat(row.rate)||0;
+  var id=row.driver_id||String(row.id);
+  var name=((row.first_name||'')+' '+(row.last_name||'')).trim();
+  return{
+    id:id,
+    driver_id:row.driver_id,
+    name:name||'Unknown',
+    payType:payType,
+    pay_type:row.pay_type,
+    rate:rate,
+    cpm:payType==='cpm'?rate:0,
+    pct:payType==='pct'?rate:0,
+    flat:payType==='flat'?rate:0,
+    truck:'—',
+    mpg:6.5,
+    equip:null
+  };
+}
+function loadSupabaseDrivers(){
+  var sel=document.getElementById('driverSelect');
+  supabaseClient.from('drivers')
+    .select('first_name,last_name,driver_id,pay_type,rate')
+    .eq('is_active',true)
+    .then(function(res){
+      if(res.error) throw res.error;
+      A.dbDrivers=(res.data||[]).map(mapDbDriver);
+      renderDriverSelect();
+    })
+    .catch(function(err){
+      console.error('Failed to load drivers from Supabase',err);
+      A.dbDrivers=[];
+      if(sel){
+        sel.innerHTML='<option value="">No drivers found. Add drivers in the admin portal first.</option>';
+        sel.disabled=true;
+      }
+    });
+}
+function renderDriverSelect(){
+  var sel=document.getElementById('driverSelect');
+  if(!sel) return;
+  if(!A.dbDrivers.length){
+    sel.innerHTML='<option value="">No drivers found. Add drivers in the admin portal first.</option>';
+    sel.disabled=true;
+    return;
+  }
+  sel.disabled=false;
+  var cur=A.selDriver?A.selDriver.id:'';
+  sel.innerHTML='<option value="">Select a driver...</option>'+A.dbDrivers.map(function(d){
+    var label=d.name+' ('+d.driver_id+')';
+    return '<option value="'+d.id.replace(/"/g,'&quot;')+'"'+(cur===d.id?' selected':'')+'>'+label+'</option>';
   }).join('');
 }
-function selDriver(id){
-  A.selDriver=A.drivers.find(function(d){return d.id===id;})||null;
-  renderChips();
+function updateDriverBadge(){
   var badge=document.getElementById('driverBadge');
   if(!A.selDriver){badge.style.display='none';return;}
   var d=A.selDriver;
   var pay=d.payType==='cpm'?d.cpm+'¢/mi':d.payType==='pct'?d.pct+'% of load':'$'+d.flat+'/load';
   badge.style.display='flex';
-  badge.innerHTML='<div class="dbi"><span class="dbl">Driver: </span><span class="dbv">'+d.name+'</span></div>'
-    +'<div class="dbi"><span class="dbl">Unit: </span><span class="dbv">'+d.truck+'</span></div>'
-    +'<div class="dbi"><span class="dbl">Pay: </span><span class="dbv">'+pay+'</span></div>'
+  badge.innerHTML='<div class="dbi"><span class="dbl">Driver: </span><span class="dbv">'+d.name+' ('+d.driver_id+')</span></div>'
+    +'<div class="dbi"><span class="dbl">Pay type: </span><span class="dbv">'+d.pay_type+'</span></div>'
+    +'<div class="dbi"><span class="dbl">Rate: </span><span class="dbv">'+pay+'</span></div>'
     +'<div class="dbi"><span class="dbl">MPG: </span><span class="dbv">'+d.mpg+'</span></div>';
   if(d.equip) selTrailerByType(d.equip);
+}
+function selDriverFromDropdown(val){
+  if(!val){
+    A.selDriver=null;
+    updateDriverBadge();
+    onInput();
+    return;
+  }
+  A.selDriver=A.dbDrivers.find(function(d){return d.id===val;})||null;
+  updateDriverBadge();
   onInput();
 }
 
@@ -1586,7 +1654,7 @@ function saveDriver(){
     home:document.getElementById('pHome').value.trim(),equip:document.getElementById('pEquip').value,mpg:document.getElementById('pMpg').value};
   if(eid){var i=A.drivers.findIndex(function(d){return d.id===eid;});if(i>=0)A.drivers[i]=driver;}
   else A.drivers.push(driver);
-  saveDrivers();renderChips();renderProfiles();clearDForm();
+  saveDrivers();renderProfiles();clearDForm();
 }
 function clearDForm(){
   document.getElementById('editId').value='';
@@ -1610,7 +1678,7 @@ function deleteDriver(id){
   if(!confirm('Remove this driver?'))return;
   A.drivers=A.drivers.filter(function(d){return d.id!==id;});
   if(A.selDriver&&A.selDriver.id===id){A.selDriver=null;document.getElementById('driverBadge').style.display='none';}
-  saveDrivers();renderChips();renderProfiles();
+  saveDrivers();renderProfiles();
 }
 function renderProfiles(){
   var el=document.getElementById('profileList');
@@ -1839,46 +1907,6 @@ function setMktView(view){
 }
 
 
-
-// ── Supabase driver loader ──
-async function loadDriversFromSupabase() {
-  try {
-    var res = await fetch('https://rfeakhvcjuidsgrjfubn.supabase.co/rest/v1/drivers?is_active=eq.true&select=*&order=first_name.asc', {
-      headers: {
-        'apikey': 'sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_',
-        'Authorization': 'Bearer sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_'
-      }
-    });
-    if (!res.ok) throw new Error('Supabase error ' + res.status);
-    var rows = await res.json();
-    if (!Array.isArray(rows) || rows.length === 0) return;
-    // Map Supabase rows to the app driver format
-    A.drivers = rows.map(function(r) {
-      var pt = r.pay_type || 'cpm';
-      var rate = r.pay_rate || 0;
-      return {
-        id: r.id || (r.first_name + '_' + r.last_name),
-        name: (r.first_name + ' ' + r.last_name).trim(),
-        truck: r.truck_unit || 'Unit',
-        payType: pt,
-        cpm: pt === 'cpm' ? String(rate) : '0',
-        pct: pt === 'pct' ? String(rate) : '0',
-        flat: pt === 'flat' ? String(rate) : '0',
-        home: '',
-        equip: '',
-        mpg: '6',
-        mc: '',
-        phone: r.phone || '',
-        email: r.email || '',
-        driverId: r.driver_id || '',
-        supabaseId: r.id
-      };
-    });
-    renderChips();
-    renderProfiles();
-  } catch(e) {
-    console.warn('Could not load drivers from Supabase:', e);
-  }
-}</script>
+</script>
 </body>
 </html>
