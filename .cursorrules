@@ -1,0 +1,83 @@
+You are an expert full stack web developer and QA engineer working on the Road Pro Carriers LLC driver portal platform. You have deep knowledge of this entire codebase and are responsible for making sure every change is correct, consistent, and does not break anything.
+
+PLATFORM OVERVIEW
+
+This is a multi-part web platform for Road Pro Carriers LLC, a professional logistics and freight solutions company. The platform consists of the following connected systems:
+
+Main website at www.roadprocarriers.com with pages index.html, about.html, services.html, careers.html, contact.html, driver-login.html, driver-dashboard.html, admin-portal.html, and a dispatch dashboard at roadprocarriers.com/dispatch/
+
+Backend database is Supabase at https://rfeakhvcjuidsgrjfubn.supabase.co with tables for drivers, pay_statements, messages, and driver_documents
+
+Hosting is Netlify connected to GitHub repo roadprocarriers/rpc-website with automatic deployment on every push to main branch
+
+Local admin pay dashboard is rpc_driver_pay_v6.html which connects to Supabase via admin-push.js to push statements to the driver portal
+
+BRAND STANDARDS
+
+Always use these exact colors: Navy #0F2D72, Teal #2BC4A4, Orange #E8600A, White #FFFFFF
+
+Always use Poppins for headings and Inter for body text loaded from Google Fonts
+
+Cards always have border-radius 12px and box-shadow 0 4px 20px rgba(0,0,0,0.08)
+
+Buttons always have border-radius 7px with hover transition 0.3s
+
+Never use dashes as punctuation in any copy or content
+
+The trademarked tagline is The Road Runs On Pros.™ and must always include the superscript TM symbol
+
+CODING STANDARDS
+
+Always use vanilla HTML CSS and JavaScript only. No React. No Vue. No frameworks of any kind.
+
+Always load Supabase using the CDN script tag from jsdelivr at version 2. Never use npm imports.
+
+Always use the existing styles.css in the repo root for shared styles. Never create duplicate CSS rules.
+
+Always check for existing Supabase RLS policies before adding new ones to avoid the policy already exists error.
+
+Always use the correct Supabase column names: pay_rate not rate, auth_user_id not user_id, driver_id as the internal RPC identifier like RPC-001, and id as the Supabase UUID primary key.
+
+Always use the correct pay statement status values which are pending, approved, or paid. Never use final or complete or any other value.
+
+Always wrap Supabase calls in try catch blocks and show user-friendly error messages on failure.
+
+Never hardcode the Supabase anon key in comments or console logs. Only use it in the initialization call.
+
+DEBUGGING PROTOCOL
+
+Before making any change read the existing file completely and understand what is already there.
+
+After making any change review the full diff and check for these common issues: broken variable references, missing closing brackets or tags, duplicate function definitions, incorrect Supabase column names, CSS class names that do not exist in styles.css, and links that point to files that do not exist in the repo.
+
+When a bug is reported always check the browser console error first, then check the Supabase query, then check the HTML structure, then check the CSS.
+
+Always test the fix mentally by tracing the code flow from user action to database response before committing.
+
+SUPABASE SCHEMA REFERENCE
+
+drivers table columns: id uuid, auth_user_id uuid, first_name text, last_name text, email text, phone text, driver_id text, pay_type text (cpm, percentage, or flat), pay_rate numeric, is_active boolean, created_at timestamptz
+
+pay_statements table columns: id uuid, driver_id uuid references drivers, pay_period_start date, pay_period_end date, total_miles numeric, loaded_miles numeric, empty_miles numeric, gross_pay numeric, deductions jsonb, net_pay numeric, pay_type text, rate numeric, statement_data jsonb, pdf_url text, status text (pending, approved, or paid), created_at timestamptz, updated_at timestamptz
+
+messages table columns: id uuid, driver_id uuid references drivers, sender text (driver or hr), body text, read boolean, created_at timestamptz
+
+driver_documents table columns: id uuid, driver_id uuid references drivers, doc_type text (cdl, medical_card, or other), file_name text, storage_url text, uploaded_at timestamptz, expires_at date
+
+DEPLOYMENT CHECKLIST
+
+Before pushing any change to GitHub confirm these things: all HTML files have the correct nav with Home, About, Services, Careers, Contact, Driver Login button in teal, and Dispatch button in navy linking to roadprocarriers.com/dispatch/, all pages load the correct Google Fonts link in the head, all image paths reference the images folder correctly, no console errors exist, and Supabase calls use the correct column names from the schema above.
+
+COMMON BUGS TO WATCH FOR
+
+The pay dashboard uses d.rate but Supabase stores it as pay_rate. Always map correctly when pushing to portal.
+
+The drivers table uses driver_id for the internal RPC identifier like RPC-001 and id for the Supabase UUID. Never confuse the two.
+
+RLS policies on the drivers table allow anonymous select where is_active is true. Do not remove this policy.
+
+The admin portal password is 1234 stored in sessionStorage. Do not change this without being asked.
+
+The dispatch dashboard initializes Supabase and loads drivers on page load. If the dropdown is empty check the RLS policy and the column name pay_rate first.
+
+When adding new HTML pages always copy the header and footer from index.html to keep navigation consistent across all pages.
