@@ -793,7 +793,7 @@ function normalizePayType(payType){
 }
 function mapDbDriver(row){
   var payType=normalizePayType(row.pay_type);
-  var rate=parseFloat(row.rate)||0;
+  var rate=parseFloat(row.pay_rate)||0;
   var id=row.driver_id||String(row.id);
   var name=((row.first_name||'')+' '+(row.last_name||'')).trim();
   return{
@@ -814,7 +814,7 @@ function mapDbDriver(row){
 function loadSupabaseDrivers(){
   var sel=document.getElementById('driverSelect');
   supabaseClient.from('drivers')
-    .select('first_name,last_name,driver_id,pay_type,rate')
+    .select('first_name,last_name,driver_id,pay_type,pay_rate')
     .eq('is_active',true)
     .then(function(res){
       if(res.error) throw res.error;
