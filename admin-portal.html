@@ -100,7 +100,7 @@ function tryLogin(){
 document.getElementById('adminSignOut').addEventListener('click',()=>{sessionStorage.removeItem(SK);showGate();});
 const {createClient}=supabase;
 const sb=createClient('https://rfeakhvcjuidsgrjfubn.supabase.co','sb_publishable_reHNLmo12w1HfOlDQW3ZbQ_5eqN5hN_');
-let tabLoaded={};
+var tabLoaded={};
 function initApp(){
   if(tabLoaded._init)return;tabLoaded._init=true;
   document.querySelectorAll('.tab-btn').forEach(btn=>{
