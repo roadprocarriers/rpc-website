@@ -819,7 +819,7 @@ function loadSupabaseDrivers(){
     .then(function(res){
       if(res.error) throw res.error;
       A.dbDrivers=(res.data||[]).map(mapDbDriver);
-      renderDriverSelect();
+      renderDriverSelect();renderProfiles();
     })
     .catch(function(err){
       console.error('Failed to load drivers from Supabase',err);
@@ -1645,55 +1645,106 @@ function togglePay(){
 }
 function saveDriver(){
   var name=document.getElementById('pName').value.trim();
-  if(!name){alert('Enter driver name.');return;}
+  if(!name){alert('Driver name is required.');return;}
   var eid=document.getElementById('editId').value;
-  var driver={id:eid||Date.now().toString(),name,
-    truck:document.getElementById('pTruck').value.trim()||'Unit',
-    payType:document.getElementById('pPayType').value,
-    cpm:document.getElementById('pCpm').value,pct:document.getElementById('pPct').value,flat:document.getElementById('pFlat').value,
-    home:document.getElementById('pHome').value.trim(),equip:document.getElementById('pEquip').value,mpg:document.getElementById('pMpg').value};
-  if(eid){var i=A.drivers.findIndex(function(d){return d.id===eid;});if(i>=0)A.drivers[i]=driver;}
-  else A.drivers.push(driver);
-  saveDrivers();renderProfiles();clearDForm();
+  var payType=document.getElementById('pPayType').value;
+  var driver={
+    id: eid||Date.now().toString(),
+    name: name,
+    truck: document.getElementById('pTruck').value.trim()||'Unit',
+    payType: payType,
+    cpm: document.getElementById('pCpm').value,
+    pct: document.getElementById('pPct').value,
+    flat: document.getElementById('pFlat').value,
+    home: document.getElementById('pHome').value.trim(),
+    equip: document.getElementById('pEquip').value,
+    mpg: document.getElementById('pMpg').value,
+    pay_type: payType,
+    pay_rate: parseFloat(payType==='cpm'?document.getElementById('pCpm').value:payType==='pct'?document.getElementById('pPct').value:document.getElementById('pFlat').value)||0
+  };
+  if(eid){
+    var i=A.dbDrivers.findIndex(function(d){return d.id===eid;});
+    if(i>=0)A.dbDrivers[i]=driver;
+  } else {
+    A.dbDrivers.push(driver);
+  }
+  // Sync to Supabase
+  var nameParts=name.split(' ');
+  var first=nameParts[0]||'';
+  var last=nameParts.slice(1).join(' ')||'';
+  var supaRow={first_name:first,last_name:last,pay_type:driver.pay_type,pay_rate:driver.pay_rate,is_active:true};
+  if(eid&&eid.length===36){
+    supabaseClient.from('drivers').update(supaRow).eq('id',eid).then(function(){});
+  } else {
+    supabaseClient.from('drivers').insert(supaRow).then(function(res){
+      if(res.data&&res.data[0]){driver.id=res.data[0].id;driver.supabaseId=res.data[0].id;}
+    });
+  }
+  renderDriverSelect();renderProfiles();clearDForm();
 }
 function clearDForm(){
+  document.getElementById('pName').value='';
+  document.getElementById('pTruck').value='';
+  document.getElementById('pHome').value='';
+  document.getElementById('pCpm').value='';
+  document.getElementById('pPct').value='';
+  document.getElementById('pFlat').value='';
+  document.getElementById('pMpg').value='6.5';
+  document.getElementById('pPayType').value='cpm';togglePay();
+  document.getElementById('pEquip').value='';
   document.getElementById('editId').value='';
-  ['pName','pTruck','pHome'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('pCpm').value='55';document.getElementById('pPct').value='28';
-  document.getElementById('pFlat').value='200';document.getElementById('pMpg').value='6.5';
-  document.getElementById('pPayType').value='cpm';document.getElementById('pEquip').value='dryvan';
-  togglePay();document.getElementById('dFormTitle').textContent='Add Driver';
 }
 function editDriver(id){
-  var d=A.drivers.find(function(dr){return dr.id===id;});if(!d)return;
-  document.getElementById('editId').value=d.id;document.getElementById('pName').value=d.name;
-  document.getElementById('pTruck').value=d.truck;document.getElementById('pPayType').value=d.payType;
-  document.getElementById('pCpm').value=d.cpm;document.getElementById('pPct').value=d.pct;
-  document.getElementById('pFlat').value=d.flat;document.getElementById('pHome').value=d.home||'';
-  document.getElementById('pEquip').value=d.equip||'dryvan';document.getElementById('pMpg').value=d.mpg||'6.5';
-  togglePay();document.getElementById('dFormTitle').textContent='Edit — '+d.name;
-  document.getElementById('pName').scrollIntoView({behavior:'smooth'});
+  var d=A.dbDrivers.find(function(d){return d.id===id;});
+  if(!d)return;
+  document.getElementById('pName').value=d.name||'';
+  document.getElementById('pTruck').value=d.truck||'';
+  document.getElementById('pHome').value=d.home||'';
+  document.getElementById('pPayType').value=d.payType||d.pay_type||'cpm';togglePay();
+  document.getElementById('pCpm').value=d.cpm||d.pay_rate||'';
+  document.getElementById('pPct').value=d.pct||'';
+  document.getElementById('pFlat').value=d.flat||'';
+  document.getElementById('pMpg').value=d.mpg||'6.5';
+  document.getElementById('pEquip').value=d.equip||'';
+  document.getElementById('editId').value=d.id;
+  document.getElementById('tab-drivers').scrollIntoView({behavior:'smooth'});
 }
 function deleteDriver(id){
   if(!confirm('Remove this driver?'))return;
-  A.drivers=A.drivers.filter(function(d){return d.id!==id;});
-  if(A.selDriver&&A.selDriver.id===id){A.selDriver=null;document.getElementById('driverBadge').style.display='none';}
-  saveDrivers();renderProfiles();
+  A.dbDrivers=A.dbDrivers.filter(function(d){return d.id!==id;});
+  // Delete from Supabase if it's a UUID
+  if(id&&id.length===36){
+    supabaseClient.from('drivers').delete().eq('id',id).then(function(){});
+  }
+  renderDriverSelect();renderProfiles();
 }
 function renderProfiles(){
   var el=document.getElementById('profileList');
-  if(!A.drivers.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px 0 12px">No drivers added yet.</div>';return;}
-  var pb={cpm:'pb-cpm',pct:'pb-pct',flat:'pb-flat'};
-  var pl={cpm:'CPM',pct:'Percentage',flat:'Flat Rate'};
-  el.innerHTML=A.drivers.map(function(d){
-    var pay=d.payType==='cpm'?d.cpm+'¢/mi':d.payType==='pct'?d.pct+'% of load':'$'+d.flat+'/load';
-    return '<div class="prow"><div>'
-      +'<div style="font-weight:700;font-size:12px">'+d.name+' <span style="color:var(--muted);font-weight:400;font-size:11px">— '+d.truck+'</span></div>'
-      +'<div style="color:var(--muted);font-size:11px;margin-top:2px"><span class="pb '+pb[d.payType]+'">'+pl[d.payType]+'</span> '+pay+' &nbsp;·&nbsp; '+d.mpg+' MPG &nbsp;·&nbsp; '+(TRAILERS[d.equip]||TRAILERS.dryvan).label+'</div>'
-      +'</div><div style="display:flex;gap:6px">'
-      +'<button class="btn btn-g btn-sm" onclick="editDriver(\''+d.id+'\')">Edit</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="deleteDriver(\''+d.id+'\')">Remove</button>'
-      +'</div></div>';
+  if(!el)return;
+  if(!A.dbDrivers||!A.dbDrivers.length){
+    el.innerHTML='<p style="color:var(--muted);font-size:13px">No drivers yet — add one below or manage drivers in the <a href="/admin-portal.html" style="color:var(--aqua)">Admin Portal</a>.</p>';
+    return;
+  }
+  el.innerHTML=A.dbDrivers.map(function(d){
+    var pt=d.payType||d.pay_type||'cpm';
+    var rate=d.cpm||d.pay_rate||0;
+    var rateLabel=pt==='cpm'?(parseFloat(rate)*100).toFixed(2)+'¢/mi':pt==='pct'?rate+'% of load':'$'+rate+'/load';
+    return '<div class="card" style="margin-bottom:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">'+
+      '<div>'+
+        '<strong style="color:#fff;font-size:14px">'+d.name+'</strong>'+
+        (d.truck&&d.truck!=='—'?' <span style="color:var(--muted);font-size:12px">— '+d.truck+'</span>':'')+
+        '<div style="margin-top:4px">'+
+          '<span class="pill" style="font-size:10px;text-transform:uppercase;letter-spacing:.5px">'+pt.toUpperCase()+'</span> '+
+          '<span style="color:var(--aqua);font-size:12px">'+rateLabel+'</span>'+
+          (d.mpg?' · <span style="color:var(--muted);font-size:12px">'+d.mpg+' MPG</span>':'')+
+          (d.equip?' · <span style="color:var(--muted);font-size:12px">'+d.equip+'</span>':'')+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px">'+
+        '<button class="btn btn-g btn-sm" onclick="editDriver(''+d.id+'')">Edit</button>'+
+        '<button class="btn btn-sm" style="background:#c0392b;color:#fff" onclick="deleteDriver(''+d.id+'')">Remove</button>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
