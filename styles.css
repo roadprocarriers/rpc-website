@@ -889,7 +889,7 @@ section {
   margin-bottom: 10px;
 }
 
-.footer-bottom {
+.footer-social{display:flex;justify-content:center;gap:16px;margin-bottom:12px}.footer-social a{color:#FFFFFF;display:inline-flex;transition:color 0.3s ease}.footer-social a:hover{color:#2BC4A4}.footer-bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   text-align: center;
   padding: 20px 24px;
