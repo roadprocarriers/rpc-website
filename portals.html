@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Road Pro Carriers Portal Access">
+  <title>Portals | Road Pro Carriers LLC</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+#gate{position:fixed;inset:0;background:#0F2D72;display:flex;align-items:center;justify-content:center;z-index:9999}
+#gate.hidden{display:none}
+.gate-card{background:#fff;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.25);padding:48px 40px;width:100%;max-width:400px;text-align:center;margin:16px}
+.gate-card img{height:50px;margin:0 auto 24px;display:block}
+  .gate-card h2{font-family:'Poppins',sans-serif;font-size:22px;color:#0F2D72;margin-bottom:6px}
+.gate-card p{font-size:14px;color:#888;margin-bottom:24px}
+.gate-card input{width:100%;padding:12px 14px;border:1.5px solid #dde3ed;border-radius:8px;font-size:15px;font-family:'Inter',sans-serif;outline:none;margin-bottom:14px;background:#fafbfd;box-sizing:border-box}
+.gate-card input:focus{border-color:#2BC4A4}
+  .gate-err{color:#dc2626;font-size:13px;margin-bottom:12px;min-height:18px}
+  .btn-gate{width:100%;padding:13px;background:#2BC4A4;color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-weight:600;font-size:15px;cursor:pointer}
+.btn-gate:hover{background:#24a88c}
+#portalsApp{display:none}
+.portals-main{padding:100px 24px;min-height:calc(100vh - 72px);display:flex;align-items:center;justify-content:center;background:#f8fafb}
+.portal-cards{display:grid;grid-template-columns:1fr 1fr;gap:40px;max-width:900px;width:100%}
+.portal-card{background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.08);padding:48px 32px;text-align:center;transition:transform 0.3s ease}
+  .portal-card:hover{transform:translateY(-4px)}
+.portal-card h2{color:#0F2D72;font-size:1.4rem;margin-bottom:12px}
+.portal-card p{color:#666;font-size:15px;margin-bottom:28px;line-height:1.6}
+@media(max-width:768px){.portal-cards{grid-template-columns:1fr}}
+</style>
+  </head>
+  <body>
+
+  <div id="gate">
+  <div class="gate-card">
+  <img src="images/logo.png" alt="Road Pro Carriers">
+  <h2>Portal Access</h2>
+  <p>Enter your password to continue</p>
+<div class="gate-err" id="gateErr"></div>
+  <input type="password" id="gatePass" placeholder="Password" autocomplete="current-password">
+  <button class="btn-gate" id="gateBtn">Login</button>
+  </div>
+  </div>
+
+  <div id="portalsApp">
+  <header class="site-header">
+  <div class="header-inner">
+  <a href="index.html" class="logo"><img src="images/logo.png" alt="Road Pro Carriers LLC"></a>
+  </div>
+  </header>
+
+  <main class="portals-main">
+  <div class="portal-cards">
+  <div class="portal-card">
+  <div class="icon-circle icon-circle-lg" style="margin:0 auto 20px">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18h2"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+  </div>
+  <h2>Dispatch Dashboard</h2>
+  <p>Manage loads, routes, and driver assignments.</p>
+<a href="dispatch/" class="btn btn-teal">Enter Dispatch</a>
+  </div>
+  <div class="portal-card">
+  <div class="icon-circle icon-circle-lg" style="margin:0 auto 20px">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  </div>
+  <h2>Admin Portal</h2>
+  <p>Manage drivers, statements, messages, and documents.</p>
+  <a href="admin-portal.html" class="btn btn-orange">Enter Admin</a>
+  </div>
+  </div>
+  </main>
+  </div>
+
+  <script>
+  (function(){
+  var PASS='1234',SK='rpc_portals_auth';
+var gate=document.getElementById('gate'),app=document.getElementById('portalsApp');
+function showApp(){gate.classList.add('hidden');app.style.display='block';}
+function tryLogin(){
+  var v=document.getElementById('gatePass').value;
+if(v===PASS){sessionStorage.setItem(SK,'1');document.getElementById('gateErr').textContent='';showApp();}
+  else{document.getElementById('gateErr').textContent='Incorrect password. Please try again.';document.getElementById('gatePass').value='';document.getElementById('gatePass').focus();}
+  }
+document.getElementById('gateBtn').addEventListener('click',tryLogin);
+document.getElementById('gatePass').addEventListener('keydown',function(e){if(e.key==='Enter')tryLogin();});
+if(sessionStorage.getItem(SK)==='1')showApp();
+            })();
+</script>
+  </body>
+  </html>
