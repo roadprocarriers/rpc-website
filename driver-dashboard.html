@@ -647,7 +647,7 @@
 
       await sb.from('driver_documents').insert({
         driver_id: driver.id,
-        doc_type: docType,
+        doc_type: docType.toLowerCase(),
         file_name: file.name,
         storage_url: urlData.publicUrl,
         uploaded_at: new Date().toISOString()
