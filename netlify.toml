@@ -16,3 +16,9 @@
                       from = "/driver-pay"
                         to = "/driver-pay/index.html"
                           status = 200
+
+                          [[redirects]]
+                            from = "https://drivers.roadprocarriers.com/*"
+                              to = "https://roadprocarriers.com/driver-login.html"
+                                status = 301
+                                  force = true
