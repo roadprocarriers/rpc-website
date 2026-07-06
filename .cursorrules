@@ -4,13 +4,13 @@ PLATFORM OVERVIEW
 
 This is a multi-part web platform for Road Pro Carriers LLC, a professional logistics and freight solutions company. The platform consists of the following connected systems:
 
-Main website at www.roadprocarriers.com with pages index.html, about.html, services.html, careers.html, contact.html, driver-login.html, driver-dashboard.html, admin-portal.html, and a dispatch dashboard at roadprocarriers.com/dispatch/
+Main website at www.roadprocarriers.com with pages index.html, about.html, services.html, careers.html, contact.html, driver-login.html, driver-dashboard.html, admin-portal.html, portals.html, paydashboard.html, and a dispatch dashboard at roadprocarriers.com/dispatch/
 
 Backend database is Supabase at https://rfeakhvcjuidsgrjfubn.supabase.co with tables for drivers, pay_statements, messages, and driver_documents
 
 Hosting is Netlify connected to GitHub repo roadprocarriers/rpc-website with automatic deployment on every push to main branch
 
-Local admin pay dashboard is rpc_driver_pay_v6.html which connects to Supabase via admin-push.js to push statements to the driver portal
+Live pay dashboard is paydashboard.html at roadprocarriers.com/paydashboard.html. It connects to Supabase via admin-push.js to push statements to the driver portal. Local development copy is rpc_driver_pay_v6.html.
 
 BRAND STANDARDS
 
@@ -76,7 +76,9 @@ The drivers table uses driver_id for the internal RPC identifier like RPC-001 an
 
 RLS policies on the drivers table allow anonymous select where is_active is true. Do not remove this policy.
 
-The admin portal password is 1234 stored in sessionStorage. Do not change this without being asked.
+The admin portal, portals hub, and pay dashboard passwords are 1234 stored in sessionStorage. Do not change this without being asked.
+
+paydashboard.html loads admin-push.js from the repo root and uses pushStatementToPortal to insert approved pay statements into Supabase pay_statements.
 
 The dispatch dashboard initializes Supabase and loads drivers on page load. If the dropdown is empty check the RLS policy and the column name pay_rate first.
 
