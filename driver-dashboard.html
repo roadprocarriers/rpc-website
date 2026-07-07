@@ -24,6 +24,9 @@
       gap: 16px;
     }
     .dash-header .logo-link img { height: 40px; width: auto; display: block; }
+    .dash-home-bar { background: #1a3a7a; padding: 8px 28px; }
+    .dash-home-bar a { color: #fff; font-size: 12px; font-weight: 600; font-family: 'Poppins', sans-serif; text-decoration: none; border: 1.5px solid #2BC4A4; padding: 6px 16px; border-radius: 20px; transition: background 0.2s; }
+    .dash-home-bar a:hover { background: #2BC4A4; }
     .dash-header .welcome {
       font-family: 'Poppins', sans-serif;
       font-weight: 600;
@@ -300,13 +303,13 @@
 
   <!-- Header -->
   <header class="dash-header">
-    <a href="driver-login.html" class="logo-link">
+    <a href="https://www.roadprocarriers.com" class="logo-link">
       <img src="images/logo.png" alt="Road Pro Carriers LLC">
     </a>
     <div class="welcome" id="welcomeMsg">Welcome back!</div>
     <button class="btn-signout" id="signOutBtn">Sign Out</button>
   </header>
-
+  <div class="dash-home-bar"><a href="https://www.roadprocarriers.com">🏠 Home</a></div>
   <!-- Tab Bar -->
   <nav class="tab-bar">
     <button class="tab-btn active" data-tab="pay">Pay Statements</button>
