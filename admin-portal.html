@@ -22,6 +22,7 @@
 .admin-header{background:#0F2D72;padding:0 28px;height:66px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .admin-header img{height:40px}.admin-header .title{font-family:'Poppins',sans-serif;font-weight:700;font-size:17px;color:#fff}
 .btn-signout-admin{background:#E8600A;color:#fff;border:none;border-radius:7px;padding:9px 20px;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;cursor:pointer}.btn-signout-admin:hover{background:#c45209}
+  .rpc-quicknav{background:#1a3a7a;padding:10px 28px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}.rpc-quicknav a{display:inline-block;padding:6px 16px;border-radius:20px;border:1.5px solid #2BC4A4;color:#fff;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif;text-decoration:none;transition:all .2s}.rpc-quicknav a:hover{background:#2BC4A4}.rpc-quicknav a.active{background:#2BC4A4;border-color:#2BC4A4}
 .tab-bar{background:#fff;border-bottom:2px solid #e4eaf3;display:flex;padding:0 28px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(15,45,114,.06)}
 .tab-btn{padding:16px 22px;border:none;background:none;font-family:'Poppins',sans-serif;font-weight:600;font-size:14px;color:#7a8aaa;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}.tab-btn:hover{color:#0F2D72}.tab-btn.active{color:#0F2D72;border-bottom-color:#2BC4A4}
 .admin-main{flex:1;padding:28px;max-width:1200px;margin:0 auto;width:100%}.tab-panel{display:none}.tab-panel.active{display:block}
@@ -72,7 +73,7 @@ tbody tr{border-bottom:1px solid #f0f4f8}.tbody tr:last-child{border-bottom:none
 <body>
 <div id="gate"><div class="gate-card"><img src="images/logo.png" alt="Road Pro Carriers"><h2>Admin Portal</h2><p>Enter your admin password to continue</p><div class="gate-err" id="gateErr"></div><input type="password" id="gatePass" placeholder="Password" autocomplete="current-password"><button class="btn-gate" id="gateBtn">Enter Portal</button></div></div>
 <div id="app" style="display:none;flex-direction:column;flex:1;min-height:100vh">
-<header class="admin-header"><img src="images/logo.png" alt="Road Pro Carriers LLC"><div class="title">Admin Portal</div><button class="btn-signout-admin" id="adminSignOut">Sign Out</button></header>
+<header class="admin-header"><a href="https://www.roadprocarriers.com" style="display:flex;align-items:center"><img src="images/logo.png" alt="Road Pro Carriers LLC"></a><div class="title">Admin Portal</div><button class="btn-signout-admin" id="adminSignOut">Sign Out</button></header><div class="rpc-quicknav"><a href="https://www.roadprocarriers.com">Main Site</a><a href="/admin-portal.html" class="active">Admin Portal</a><a href="/paydashboard.html">Pay Dashboard</a><a href="/dispatch/">Dispatch</a></div>
 <nav class="tab-bar"><button class="tab-btn active" data-tab="drivers">Drivers</button><button class="tab-btn" data-tab="statements">Statements</button><button class="tab-btn" data-tab="messages">Messages</button><button class="tab-btn" data-tab="documents">Documents</button></nav>
 <main class="admin-main">
 <section class="tab-panel active" id="tab-drivers"><div class="toolbar"><div class="section-title">Drivers</div><button class="btn-add" id="addDriverBtn">+ Add Driver</button></div><div class="tbl-wrap" id="driversTableWrap"><div class="loading">Loading drivers…</div></div></section>
