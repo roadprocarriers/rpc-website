@@ -7,6 +7,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+  .rpc-quicknav{background:#1a3a7a;padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .rpc-quicknav a{display:inline-block;padding:5px 14px;border-radius:20px;border:1.5px solid var(--aqua);color:#fff;font-size:11px;font-weight:600;text-decoration:none;transition:all .2s}
+  .rpc-quicknav a:hover{background:var(--aqua)}
+  .rpc-quicknav a.active{background:var(--aqua);border-color:var(--aqua)}
 :root{
   --navy:#001A57;--aqua:#008E97;--orange:#F5822
   --bg:#0A0E1A;--card:#111827;--card2:#1a2233;--card3:#0d1520;
@@ -218,12 +222,13 @@ select option{background:#1e2a3a}
 <div class="app" id="dispatchApp" style="display:none">
 
 <div class="hdr">
-  <a href="/" style="text-decoration:none"><div class="logo">ROAD PRO <span>CARRIERS</span></div></a><div style="font-size:11px;color:rgba(255,255,255,.4);margin-left:6px">Dispatch Portal</div>
+  <a href="https://www.roadprocarriers.com" style="text-decoration:none"><div class="logo">ROAD PRO <span>CARRIERS</span></div></a><div style="font-size:11px;color:rgba(255,255,255,.4);margin-left:6px">Dispatch Portal</div>
   <div class="hdr-r">
     <div class="pill"><div class="dot"></div>Claude Active</div>
     <div class="hdr-time" id="rpcTime"></div>
   </div>
 </div>
+  <div class="rpc-quicknav"><a href="https://www.roadprocarriers.com">Main Site</a><a href="/admin-portal.html">Admin Portal</a><a href="/paydashboard.html">Pay Dashboard</a><a href="/dispatch/" class="active">Dispatch</a></div>
 
 <div class="nav">
   <div class="nt active" onclick="sw('dispatch')">Dispatch</div>
