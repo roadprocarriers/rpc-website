@@ -22,6 +22,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 .logo-sub{font-size:8px;letter-spacing:3px;color:rgba(255,255,255,0.45);margin-top:3px;}
 .hdr-title{margin-left:auto;text-align:right;}
 .hdr-title h1{font-size:15px;font-weight:600;color:#fff;}
+  .rpc-quicknav{background:#1a3a7a;padding:10px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .rpc-quicknav a{display:inline-block;padding:6px 16px;border-radius:20px;border:1.5px solid var(--teal);color:#fff;font-size:12px;font-weight:600;text-decoration:none;transition:all .2s;}
+  .rpc-quicknav a:hover{background:var(--teal);}
+  .rpc-quicknav a.active{background:var(--teal);border-color:var(--teal);}
 .hdr-title p{font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;}
 .tabs{display:flex;gap:0;background:var(--navy);padding:0 24px;border-top:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;}
 .tab{padding:10px 16px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.55);cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;}
@@ -160,15 +164,17 @@ tr:hover td{background:#f8f9fc;}
 <div id="payApp" style="display:none">
 
 <div class="hdr">
-  <div>
+  <a href="https://www.roadprocarriers.com" style="text-decoration:none">
+    <div>
     <div class="logo">R<span class="t">P</span>C<span class="o">.</span></div>
     <div class="logo-sub">ROAD PRO CARRIERS</div>
-  </div>
+  </div></a>
   <div class="hdr-title">
     <h1>Driver Pay Dashboard</h1>
     <p>Road Pro Carriers LLC</p>
   </div>
 </div>
+  <div class="rpc-quicknav"><a href="https://www.roadprocarriers.com">Main Site</a><a href="/admin-portal.html">Admin Portal</a><a href="/paydashboard.html" class="active">Pay Dashboard</a><a href="/dispatch/">Dispatch</a></div>
 
 <div class="tabs">
     <div class="tab active" onclick="sw('drivers')">👤 Drivers</div>
