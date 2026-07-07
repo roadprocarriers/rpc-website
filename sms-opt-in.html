@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Opt in to receive SMS updates from Road Pro Carriers LLC about your loads, deliveries, and shipment status.">
+  <title>SMS Opt-In | Road Pro Carriers LLC</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .optin-hero {
+      background: #0F2D72;
+      padding: 70px 24px 50px;
+      text-align: center;
+    }
+    .optin-hero h1 {
+      color: #FFFFFF;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      margin-bottom: 12px;
+    }
+    .optin-hero p {
+      color: rgba(255,255,255,0.75);
+      font-size: 15px;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+    .optin-section {
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+    .optin-card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 40px 36px;
+    }
+    .optin-card h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.2rem;
+      color: #0F2D72;
+      margin-bottom: 6px;
+    }
+    .optin-card .subtext {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+      font-family: 'Poppins', sans-serif;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="tel"],
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      color: #333;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+      background: #fafafa;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #2BC4A4;
+      background: #fff;
+    }
+    .consent-box {
+      background: #f4f6fb;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .consent-box input[type="checkbox"] {
+      margin-top: 3px;
+      width: 18px;
+      height: 18px;
+      accent-color: #0F2D72;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .consent-box label {
+      font-size: 13px;
+      color: #444;
+      line-height: 1.7;
+      cursor: pointer;
+    }
+    .consent-box label a {
+      color: #E8600A;
+      font-weight: 500;
+    }
+    .btn-submit {
+      width: 100%;
+      background: #E8600A;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover {
+      background: #cf5409;
+    }
+    .disclaimer {
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+    .success-msg {
+      display: none;
+      background: #e6faf6;
+      border: 1.5px solid #2BC4A4;
+      border-radius: 8px;
+      padding: 20px 24px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .success-msg h3 {
+      color: #0F2D72;
+      font-family: 'Poppins', sans-serif;
+      margin-bottom: 8px;
+    }
+    .success-msg p {
+      color: #444;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <img src="images/logo.png" alt="Road Pro Carriers LLC">
+      </a>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <label for="nav-toggle" class="hamburger" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </label>
+      <nav class="main-nav">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="services.html">Services</a>
+        <a href="careers.html">Careers</a>
+        <a href="contact.html">Contact</a>
+        <a href="driver-login.html" class="btn btn-teal nav-login">Driver Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="optin-hero">
+    <h1>Stay Updated on Your Loads</h1>
+    <p>Sign up to receive SMS updates from Road Pro Carriers LLC about load details, delivery status, ETAs, and more.</p>
+  </div>
+
+  <div class="optin-section">
+    <div class="optin-card">
+      <h2>SMS Opt-In Form</h2>
+      <p class="subtext">Fill out the form below to receive text message updates from Road Pro Carriers LLC. You can opt out at any time by replying STOP.</p>
+
+      <div class="form-group">
+        <label for="full-name">Full Name</label>
+        <input type="text" id="full-name" name="full_name" placeholder="Enter your full name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Mobile Phone Number</label>
+        <input type="tel" id="phone" name="phone" placeholder="(555) 555-5555" required>
+      </div>
+
+      <div class="form-group">
+        <label for="role">I am a</label>
+        <select id="role" name="role">
+          <option value="">Select one</option>
+          <option value="driver">Driver</option>
+          <option value="customer">Customer / Client</option>
+        </select>
+      </div>
+
+      <div class="consent-box">
+        <input type="checkbox" id="consent" name="consent" required>
+        <label for="consent">
+          I agree to receive transactional SMS messages from Road Pro Carriers LLC including load details, pickup and delivery instructions, ETA updates, and document requests. Message and data rates may apply. Message frequency varies by shipment. Reply STOP to opt out at any time or HELP for assistance. View our <a href="privacy-policy.html">Privacy Policy</a> and <a href="terms-of-service.html">Terms of Service</a>.
+        </label>
+      </div>
+
+      <button class="btn-submit" onclick="handleSubmit()">Opt In to SMS Updates</button>
+
+      <p class="disclaimer">By submitting this form, you are providing written consent to receive SMS messages from Road Pro Carriers LLC. Mobile information will not be shared with third parties or affiliates for marketing or promotional purposes.</p>
+
+      <div class="success-msg" id="success-msg">
+        <h3>You're opted in!</h3>
+        <p>You will now receive SMS updates from Road Pro Carriers LLC. Reply STOP at any time to opt out.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner container">
+      <p>&copy; 2026 Road Pro Carriers LLC. All rights reserved.</p>
+      <nav class="footer-links">
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <a href="terms-of-service.html">Terms of Service</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    function handleSubmit() {
+      const name = document.getElementById('full-name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const consent = document.getElementById('consent').checked;
+      const role = document.getElementById('role').value;
+
+      if (!name || !phone || !role) {
+        alert('Please fill out all fields.');
+        return;
+      }
+      if (!consent) {
+        alert('Please check the consent box to continue.');
+        return;
+      }
+
+      document.querySelector('.btn-submit').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
