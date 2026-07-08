@@ -101,16 +101,16 @@ section {
 }
 .btn-navy {
   background: transparent;
-  color: #E8600A;
-  border-color: #E8600A;
+  color: #FFFFFF;
+  border-color: #FFFFFF;
   border-width: 2px;
   font-weight: 600;
 }
 
 .btn-navy:hover {
-  background: #E8600A;
+  background: rgba(255, 255, 255, 0.12);
   color: #FFFFFF;
-  border-color: #E8600A;
+  border-color: #FFFFFF;
 }
 
 .nav-admin {
@@ -133,32 +133,31 @@ section {
 }
 
 .header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 72px;
+  padding: 16px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .logo img {
-  height: 48px;
-  width: auto;
+  max-width: 120px;
+  width: 120px;
+  height: auto;
 }
 
 .main-nav {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 28px;
 }
 
 .main-nav a {
-  color: rgba(255, 255, 255, 0.85);
+  color: #FFFFFF;
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
-  font-size: 14px;
-  letter-spacing: 0.3px;
+  font-size: 15px;
   transition: color 0.3s ease;
 }
 
@@ -170,7 +169,6 @@ section {
 .nav-login {
   padding: 10px 22px;
   font-size: 14px;
-  margin-left: 8px;
 }
 
 .nav-login:hover {
