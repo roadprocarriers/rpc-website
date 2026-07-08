@@ -287,19 +287,41 @@
       .profile-card { padding: 24px 20px; }
     }
 
-    /* ---- PDF PRINT STYLES ---- */
+    /* ---- PDF STATEMENT MODAL ---- */
+    .pdf-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,20,50,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
+    .pdf-modal-overlay.open { display: flex; }
+    .pdf-modal { background: #fff; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 12px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
+    .pdf-modal-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(255,255,255,0.2); color: #fff; font-size: 20px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5; transition: background 0.2s; }
+    .pdf-modal-close:hover { background: rgba(255,255,255,0.35); }
+    .pdf-modal-actions { display: flex; gap: 12px; justify-content: flex-end; padding: 18px 32px 28px; }
+    .btn-modal-teal, .btn-modal-navy { border: none; border-radius: 8px; padding: 12px 26px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+    .btn-modal-teal { background: #2BC4A4; color: #fff; }
+    .btn-modal-teal:hover { background: #24a88c; }
+    .btn-modal-navy { background: #0F2D72; color: #fff; }
+    .btn-modal-navy:hover { background: #0a2055; }
     @media print {
       body * { visibility: hidden; }
-      #pdfTarget, #pdfTarget * { visibility: visible; }
-      #pdfTarget { position: fixed; top: 0; left: 0; width: 100%; background: #fff; padding: 40px; font-family: 'Inter', sans-serif; }
+      #pdfModalContent, #pdfModalContent * { visibility: visible; }
+      .pdf-modal-overlay { position: absolute; background: none; padding: 0; }
+      .pdf-modal { box-shadow: none; max-height: none; overflow: visible; max-width: 100%; }
+      #pdfModalContent { position: absolute; top: 0; left: 0; width: 100%; }
+      .pdf-modal-close, .pdf-modal-actions { display: none !important; }
     }
-    #pdfTarget { display: none; }
   .footer-social{display:flex;justify-content:center;gap:16px;margin-bottom:10px}.footer-social a{color:#fff;display:inline-flex;transition:color 0.3s ease}.footer-social a:hover{color:#2BC4A4}</style>
 </head>
 <body>
 
-  <!-- Hidden PDF render target -->
-  <div id="pdfTarget"></div>
+  <!-- Pay Statement Modal -->
+  <div class="pdf-modal-overlay" id="pdfModalOverlay">
+    <div class="pdf-modal">
+      <button class="pdf-modal-close" id="pdfModalCloseBtn" aria-label="Close">&times;</button>
+      <div id="pdfModalContent"></div>
+      <div class="pdf-modal-actions">
+        <button class="btn-modal-teal" id="pdfDownloadBtn">Download PDF</button>
+        <button class="btn-modal-navy" id="pdfPrintBtn">Print</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Header -->
   <header class="dash-header">
@@ -478,65 +500,113 @@
       }).join('');
     }
 
-    // ---- PDF GENERATION ----
+    // ---- PDF STATEMENT MODAL ----
     window.downloadPDF = function(s, drv) {
-      const deductions = s.deductions || {};
-      const totalDed = Object.values(deductions).reduce((a, b) => a + parseFloat(b || 0), 0);
-      const dedRows = Object.entries(deductions).map(([k,v]) =>
-        `<tr><td>${k}</td><td style="text-align:right">(${fmt(v)})</td></tr>`
-      ).join('');
+      const sd = s.statement_data || null;
 
-      const pdfTarget = document.getElementById('pdfTarget');
-      pdfTarget.innerHTML = `
-        <div style="max-width:680px;margin:0 auto;font-family:Arial,sans-serif;color:#222;">
-          <div style="background:#0F2D72;padding:24px 32px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">
-            <div>
-              <div style="color:#fff;font-size:22px;font-weight:700;letter-spacing:0.01em;">ROAD PRO CARRIERS LLC</div>
-              <div style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:4px;">1781 North Turner Street, Hobbs, NM 88240</div>
-            </div>
-            <div style="color:#2BC4A4;font-size:15px;font-weight:700;text-align:right;">PAY STATEMENT</div>
-          </div>
-          <div style="background:#f7f9fc;padding:20px 32px;border:1px solid #e4eaf3;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-            <div>
-              <div style="font-size:11px;color:#9aabca;text-transform:uppercase;letter-spacing:0.06em;">Driver</div>
-              <div style="font-size:16px;font-weight:600;color:#0F2D72;">${drv.first_name} ${drv.last_name}</div>
-              <div style="font-size:13px;color:#555;">ID: ${drv.driver_id || '—'}</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:11px;color:#9aabca;text-transform:uppercase;letter-spacing:0.06em;">Pay Period</div>
-              <div style="font-size:15px;font-weight:600;color:#0F2D72;">${fmtDate(s.pay_period_start)} – ${fmtDate(s.pay_period_end)}</div>
-              <div style="font-size:13px;color:#555;">Pay Type: ${s.pay_type || drv.pay_type || '—'}</div>
-            </div>
-          </div>
-          <div style="padding:24px 32px;border:1px solid #e4eaf3;border-top:none;">
-            <table style="width:100%;border-collapse:collapse;font-size:14px;">
-              <tr style="border-bottom:2px solid #e4eaf3;">
-                <th style="text-align:left;padding:8px 0;color:#0F2D72;">Description</th>
-                <th style="text-align:right;padding:8px 0;color:#0F2D72;">Amount</th>
-              </tr>
-              <tr><td style="padding:10px 0;">Loaded Miles</td><td style="text-align:right;">${fmtNum(s.loaded_miles)} mi</td></tr>
-              <tr><td style="padding:10px 0;">Empty Miles</td><td style="text-align:right;">${fmtNum(s.empty_miles)} mi</td></tr>
-              <tr><td style="padding:10px 0;">Rate per Mile</td><td style="text-align:right;">${fmt(s.rate)}</td></tr>
-              <tr style="border-top:1px solid #e4eaf3;">
-                <td style="padding:10px 0;font-weight:600;">Gross Pay</td>
-                <td style="text-align:right;font-weight:600;">${fmt(s.gross_pay)}</td>
-              </tr>
-              ${dedRows}
-              <tr style="border-top:2px solid #0F2D72;background:#f7f9fc;">
-                <td style="padding:14px 0;font-weight:700;font-size:16px;color:#0F2D72;">Net Pay</td>
-                <td style="text-align:right;font-weight:700;font-size:18px;color:#2BC4A4;">${fmt(s.net_pay)}</td>
-              </tr>
-            </table>
-          </div>
-          <div style="padding:14px 32px;background:#f7f9fc;border:1px solid #e4eaf3;border-top:none;border-radius:0 0 8px 8px;font-size:11px;color:#9aabca;text-align:center;">
-            Road Pro Carriers LLC &mdash; The Road Runs On Pros.&#8482; &mdash; HR@roadprocarriers.com &mdash; 980-833-6398
-          </div>
-        </div>
-      `;
-      pdfTarget.style.display = 'block';
-      window.print();
-      setTimeout(() => { pdfTarget.style.display = 'none'; pdfTarget.innerHTML = ''; }, 1000);
+      let dedList = [];
+      if (Array.isArray(s.deductions)) {
+        dedList = s.deductions.map(x => ({ label: (x.type || 'Deduction') + (x.description ? ' — ' + x.description : ''), amount: parseFloat(x.amount ?? x.amt ?? 0) }));
+      } else if (s.deductions && typeof s.deductions === 'object') {
+        dedList = Object.entries(s.deductions).map(([k, v]) => ({ label: k, amount: parseFloat(v || 0) }));
+      }
+      const totalDed = dedList.reduce((a, x) => a + x.amount, 0);
+      const dedRows = dedList.map(x =>
+        `<tr><td style="padding:8px 0;">${escHtml(x.label)}</td><td style="text-align:right;padding:8px 0;color:#b91c1c;">(${fmt(x.amount)})</td></tr>`
+        ).join('');
+
+      let accList = [];
+      if (sd && Array.isArray(sd.fa)) {
+        accList = sd.fa.map(x => ({ label: (x.type || 'Accessorial') + (x.desc ? ' — ' + x.desc : ''), amount: parseFloat(x.amt || 0) }));
+      } else if (Array.isArray(s.accessorials)) {
+        accList = s.accessorials.map(x => ({ label: (x.type || 'Accessorial') + (x.description ? ' — ' + x.description : ''), amount: parseFloat(x.amount ?? x.amt ?? 0) }));
+      }
+      const totalAcc = accList.reduce((a, x) => a + x.amount, 0);
+      const accRows = accList.map(x =>
+        `<tr><td style="padding:8px 0;">${escHtml(x.label)}</td><td style="text-align:right;padding:8px 0;color:#1a8a5e;">+${fmt(x.amount)}</td></tr>`
+        ).join('');
+
+      let loadSectionHtml;
+      if (sd && Array.isArray(sd.fl) && sd.fl.length) {
+        const rows = sd.fl.map(l => {
+          let pay = 0;
+          if (sd.d) {
+            if (sd.d.payType === 'cpm') pay = (l.miles || 0) * sd.d.rate;
+            else if (sd.d.payType === 'pct') pay = (l.value || 0) * (sd.d.rate / 100);
+            else pay = sd.d.rate;
+          }
+          return '<tr><td style="padding:8px 6px;font-weight:600;">' + escHtml(l.loadNum || '—') + '</td><td style="padding:8px 6px;font-size:13px;">' + escHtml((l.orig || '').split(',')[0]) + '</td><td style="padding:8px 6px;font-size:13px;">' + escHtml((l.dest || '').split(',')[0]) + '</td><td style="padding:8px 6px;text-align:right;">' + fmtNum(l.miles) + '</td><td style="padding:8px 6px;text-align:right;font-weight:600;color:#0F2D72;">' + fmt(pay) + '</td></tr>';
+        }).join('');
+        loadSectionHtml = '<table style="width:100%;border-collapse:collapse;font-size:14px;">' +
+          '<tr style="border-bottom:2px solid #e4eaf3;">' +
+          '<th style="text-align:left;padding:8px 6px;color:#0F2D72;">Load #</th>' +
+          '<th style="text-align:left;padding:8px 6px;color:#0F2D72;">Origin</th>' +
+          '<th style="text-align:left;padding:8px 6px;color:#0F2D72;">Destination</th>' +
+          '<th style="text-align:right;padding:8px 6px;color:#0F2D72;">Miles</th>' +
+          '<th style="text-align:right;padding:8px 6px;color:#0F2D72;">Pay</th>' +
+          '</tr>' + rows +
+          '<tr style="border-top:1px solid #e4eaf3;background:#f7f9fc;">' +
+          '<td colspan="3" style="padding:10px 6px;font-weight:600;">Totals</td>' +
+          '<td style="padding:10px 6px;text-align:right;font-weight:600;">' + fmtNum(s.total_miles || s.loaded_miles) + ' mi</td>' +
+          '<td style="padding:10px 6px;text-align:right;font-weight:600;">' + fmt(s.gross_pay) + '</td>' +
+          '</tr></table>';
+      } else {
+        loadSectionHtml = '<table style="width:100%;border-collapse:collapse;font-size:14px;">' +
+          '<tr style="border-bottom:2px solid #e4eaf3;"><th style="text-align:left;padding:8px 0;color:#0F2D72;">Description</th><th style="text-align:right;padding:8px 0;color:#0F2D72;">Amount</th></tr>' +
+          '<tr><td style="padding:10px 0;">Loaded Miles</td><td style="text-align:right;">' + fmtNum(s.loaded_miles) + ' mi</td></tr>' +
+          '<tr><td style="padding:10px 0;">Empty Miles</td><td style="text-align:right;">' + fmtNum(s.empty_miles) + ' mi</td></tr>' +
+          '<tr><td style="padding:10px 0;">Rate per Mile</td><td style="text-align:right;">' + fmt(s.rate) + '</td></tr>' +
+          '<tr style="border-top:1px solid #e4eaf3;"><td style="padding:10px 0;font-weight:600;">Gross Pay</td><td style="text-align:right;font-weight:600;">' + fmt(s.gross_pay) + '</td></tr>' +
+          '</table>';
+      }
+
+      const accSection = accRows ? ('<div style="margin-top:18px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9aabca;">Accessorials</div><table style="width:100%;border-collapse:collapse;font-size:14px;">' + accRows + '<tr style="border-top:1px solid #e4eaf3;"><td style="padding:8px 0;font-weight:600;">Total Additional Pay</td><td style="text-align:right;padding:8px 0;font-weight:600;color:#1a8a5e;">+' + fmt(totalAcc) + '</td></tr></table>') : '';
+
+      const dedSection = dedRows ? ('<div style="margin-top:18px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#9aabca;">Deductions</div><table style="width:100%;border-collapse:collapse;font-size:14px;">' + dedRows + '<tr style="border-top:1px solid #e4eaf3;"><td style="padding:8px 0;font-weight:600;">Total Deductions</td><td style="text-align:right;padding:8px 0;font-weight:600;color:#b91c1c;">(' + fmt(totalDed) + ')</td></tr></table>') : '';
+
+      const accLine = totalAcc ? ('<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;"><span style="font-size:13px;color:rgba(255,255,255,0.65);">Additional Pay</span><span style="font-size:15px;font-weight:600;color:#86efac;">+' + fmt(totalAcc) + '</span></div>') : '';
+      const dedLine = totalDed ? ('<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;"><span style="font-size:13px;color:rgba(255,255,255,0.65);">Deductions</span><span style="font-size:15px;font-weight:600;color:#fca5a5;">(' + fmt(totalDed) + ')</span></div>') : '';
+
+      const html = '<div style="font-family:\'Inter\',Arial,sans-serif;color:#222;">' +
+        '<div style="background:#0F2D72;padding:26px 32px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">' +
+        '<div style="display:flex;align-items:center;gap:14px;">' +
+        '<img src="images/logo.png" alt="Road Pro Carriers LLC" style="height:40px;width:auto;">' +
+        '<div><div style="color:#fff;font-size:19px;font-weight:700;letter-spacing:0.01em;">ROAD PRO CARRIERS LLC</div>' +
+        '<div style="color:rgba(255,255,255,0.7);font-size:11px;margin-top:3px;">1781 North Turner Street, Hobbs, NM 88240</div>' +
+        '<div style="color:rgba(255,255,255,0.7);font-size:11px;">980-833-6398 &nbsp;&bull;&nbsp; HR@roadprocarriers.com</div></div></div>' +
+        '<div style="color:#2BC4A4;font-size:14px;font-weight:700;white-space:nowrap;">PAY STATEMENT</div>' +
+        '</div>' +
+        '<div style="background:#f7f9fc;padding:20px 32px;border:1px solid #e4eaf3;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">' +
+        '<div><div style="font-size:11px;color:#9aabca;text-transform:uppercase;letter-spacing:0.06em;">Driver</div>' +
+        '<div style="font-size:16px;font-weight:600;color:#0F2D72;">' + escHtml(drv.first_name) + ' ' + escHtml(drv.last_name) + '</div>' +
+        '<div style="font-size:13px;color:#555;">ID: ' + escHtml(drv.driver_id || '—') + '</div></div>' +
+        '<div style="text-align:right;"><div style="font-size:11px;color:#9aabca;text-transform:uppercase;letter-spacing:0.06em;">Pay Week</div>' +
+        '<div style="font-size:15px;font-weight:600;color:#0F2D72;">' + fmtDate(s.pay_period_start) + ' – ' + fmtDate(s.pay_period_end) + '</div>' +
+        '<div style="font-size:13px;color:#555;">Pay Type: ' + escHtml(s.pay_type || drv.pay_type || '—') + '</div></div>' +
+        '</div>' +
+        '<div style="padding:24px 32px;border:1px solid #e4eaf3;border-top:none;">' + loadSectionHtml + accSection + dedSection + '</div>' +
+        '<div style="background:#0F2D72;border-radius:0 0 12px 12px;padding:18px 32px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;"><span style="font-size:13px;color:rgba(255,255,255,0.65);">Gross Pay</span><span style="font-size:15px;font-weight:600;color:rgba(255,255,255,0.85);">' + fmt(s.gross_pay) + '</span></div>' +
+        accLine + dedLine +
+        '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.2);margin:10px 0;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:16px;font-weight:700;color:#fff;">Net Pay</span><span style="font-size:26px;font-weight:700;color:#fff;">' + fmt(s.net_pay) + '</span></div>' +
+        '</div>' +
+        '<div style="padding:14px 32px;background:#f7f9fc;border:1px solid #e4eaf3;border-top:none;border-radius:0 0 12px 12px;font-size:11px;color:#9aabca;text-align:center;">' +
+        'Road Pro Carriers LLC — The Road Runs On Pros.™ — HR@roadprocarriers.com — 980-833-6398</div>' +
+        '</div>';
+
+      document.getElementById('pdfModalContent').innerHTML = html;
+      document.getElementById('pdfModalOverlay').classList.add('open');
     };
+
+    document.getElementById('pdfModalCloseBtn').addEventListener('click', () => {
+      document.getElementById('pdfModalOverlay').classList.remove('open');
+    });
+    document.getElementById('pdfModalOverlay').addEventListener('click', (e) => {
+      if (e.target.id === 'pdfModalOverlay') document.getElementById('pdfModalOverlay').classList.remove('open');
+    });
+    document.getElementById('pdfDownloadBtn').addEventListener('click', () => { window.print(); });
+    document.getElementById('pdfPrintBtn').addEventListener('click', () => { window.print(); });
 
     // ==============================
     // MESSAGES
